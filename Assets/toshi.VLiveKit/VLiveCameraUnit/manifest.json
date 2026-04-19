@@ -1,0 +1,10 @@
+{
+    "name": "com.toshi.vlivekit.cameraunit",
+    "version": "0.0.1",
+    "displayName": "VLive Camera Unit",
+    "description": "Camera tools for virtual live production.",
+    "unity": "2022.3",
+    "dependencies": {
+      "com.unity.cinemachine": "2.9.7"
+    }
+  }
