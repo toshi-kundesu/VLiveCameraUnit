@@ -1,8 +1,9 @@
 {
-    "name": "VLiveCameraUnit.Runtime",
+    "name": "VLiveCameraUnit.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:4307f53044263cf4b835bd812fc161a4"
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:46a9eff06b8ea4049be4862d2c6b3afa"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -11,12 +12,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.cinemachine",
-            "expression": "",
-            "define": ""
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }
