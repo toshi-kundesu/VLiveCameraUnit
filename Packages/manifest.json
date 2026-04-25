@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "com.toshi.vlivekit.lensfilters": "https://github.com/toshi-kundesu/VLiveKit_LiveLensFilters.git?path=/Assets/toshi.VLiveKit/LiveLensFilters#main",
+    "com.toshi.vlivekit.ledvision": "https://github.com/toshi-kundesu/VLiveKit_LEDVision.git?path=/Assets/toshi.VLiveKit/LEDVision#main",
     "com.toshi.vlivekit.testassetscontainer": "https://github.com/toshi-kundesu/VLiveKit_TestAssetsContainer.git?path=/Assets/toshi.VLiveKit/TestAssetsContainer#main",
     "com.unity.cinemachine": "2.9.7",
     "com.unity.collab-proxy": "2.12.4",
