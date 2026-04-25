@@ -10,6 +10,11 @@ public class SplitLines : MonoBehaviour
     // [SerializeField] private float m_lineAlpha = 1.0f;
     [SerializeField] [Range(0.0f, 10.0f)] private float m_lineWidth = 2.0f;
 
+    // レターボックスの設定を追加
+    [SerializeField] private bool m_enableLetterbox = false;
+    [SerializeField] private Color m_letterboxColor = Color.black;
+    [SerializeField] [Range(0f, 0.5f)] private float m_letterboxRatio = 0.1f;
+
     // [SerializeField] private float m_lineHeight = 1.0f;
 
     // 分割線のスタイルを選べるようにする
@@ -27,6 +32,28 @@ public class SplitLines : MonoBehaviour
     private void OnGUI()
     {
         if (!m_isDraw) return;
+
+        // レターボックスの描画（全モードで共通）
+        if (m_enableLetterbox)
+        {
+            float boxHeight = Screen.height * m_letterboxRatio;
+            
+            GUIStyle boxStyle = new GUIStyle();
+            Texture2D boxTexture = new Texture2D(1, 1);
+            boxTexture.SetPixel(0, 0, m_letterboxColor);
+            boxTexture.Apply();
+            boxStyle.normal.background = boxTexture;
+
+            // 上部のレターボックス
+            GUI.Box(new Rect(0, 0, Screen.width, boxHeight), GUIContent.none, boxStyle);
+            // 下部のレターボックス
+            GUI.Box(new Rect(0, Screen.height - boxHeight, Screen.width, boxHeight), GUIContent.none, boxStyle);
+
+            if (Application.isPlaying)
+            {
+                Destroy(boxTexture);
+            }
+        }
 
         if (m_splitMode == SplitMode.Symmetrical)
         {
