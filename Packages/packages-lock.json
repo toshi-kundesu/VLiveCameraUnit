@@ -1,11 +1,27 @@
 {
   "dependencies": {
+    "com.toshi.vlivekit.testassetscontainer": {
+      "version": "https://github.com/toshi-kundesu/VLiveKit_TestAssetsContainer.git?path=/Assets/toshi.VLiveKit/TestAssetsContainer#main",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "04acf02774298032eaee49c2ad5f0cbd1fde87d2"
+    },
     "com.unity.burst": {
       "version": "1.8.8",
       "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.mathematics": "1.2.1"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.cinemachine": {
+      "version": "2.9.7",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.31"
       },
       "url": "https://packages.unity.com"
     },
