@@ -64,8 +64,8 @@ public class CameraCrossFade : MonoBehaviour
         if (!IsValid) return;
 
         // クロスフェード用のRenderTexture作成
-        _renderTexture = new RenderTexture(Screen.width, Screen.height, 0);
-        // _renderTexture = new RenderTexture(1920, 1080, 0);
+        // _renderTexture = new RenderTexture(Screen.width, Screen.height, 0);
+        _renderTexture = new RenderTexture(1920, 1080, 0);
         // _renderTexture = new RenderTexture(1080, 1920, 0);
         // BPMから、8拍分の秒数を計算し、それをAutoChangeIntervalとする
         // _changeBeatを事前に指定したリストの中からランダムに選択
