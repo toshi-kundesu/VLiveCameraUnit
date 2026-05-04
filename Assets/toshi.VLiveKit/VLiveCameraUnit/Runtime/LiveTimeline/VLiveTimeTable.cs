@@ -77,18 +77,19 @@ namespace toshi.VLiveKit
         /// </summary>
         public static VLiveTimeTable Get(Component caller = null)
         {
+            if (caller != null)
+            {
+                VLiveTimeTable parentTimeTable = caller.GetComponentInParent<VLiveTimeTable>(true);
+                if (parentTimeTable != null)
+                {
+                    cachedInstance = parentTimeTable;
+                    return cachedInstance;
+                }
+            }
+
             if (cachedInstance != null)
             {
                 return cachedInstance;
-            }
-
-            if (caller != null)
-            {
-                cachedInstance = caller.GetComponentInParent<VLiveTimeTable>(true);
-                if (cachedInstance != null)
-                {
-                    return cachedInstance;
-                }
             }
 
 #if UNITY_2023_1_OR_NEWER
@@ -104,6 +105,17 @@ namespace toshi.VLiveKit
         /// </summary>
         public PlayableDirector GetMasterTimeline()
         {
+            return masterTimeline;
+        }
+
+        public PlayableDirector GetTimelineOrMaster(string sectionName)
+        {
+            if (!string.IsNullOrWhiteSpace(sectionName) &&
+                TryGetSectionTimeline(sectionName, out PlayableDirector director))
+            {
+                return director;
+            }
+
             return masterTimeline;
         }
 
