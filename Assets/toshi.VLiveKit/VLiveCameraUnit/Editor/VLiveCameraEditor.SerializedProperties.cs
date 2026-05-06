@@ -7,6 +7,8 @@ namespace toshi.VLiveKit.Photography.Editor
     {
         private SerializedProperty preset;
         private SerializedProperty applyPresetOnStart;
+        private SerializedProperty autoBindPlayableDirectorFromTimeTable;
+        private SerializedProperty liveTimelineSectionName;
         private SerializedProperty sharedPlayableDirector;
         private SerializedProperty sharedLookTargetRig;
         private SerializedProperty stageVirtualCamera;
@@ -89,6 +91,8 @@ namespace toshi.VLiveKit.Photography.Editor
         {
             preset = serializedObject.FindProperty("preset");
             applyPresetOnStart = serializedObject.FindProperty("applyPresetOnStart");
+            autoBindPlayableDirectorFromTimeTable = serializedObject.FindProperty("autoBindPlayableDirectorFromTimeTable");
+            liveTimelineSectionName = serializedObject.FindProperty("liveTimelineSectionName");
             sharedPlayableDirector = serializedObject.FindProperty("sharedPlayableDirector");
             sharedLookTargetRig = serializedObject.FindProperty("sharedLookTargetRig");
             stageVirtualCamera = serializedObject.FindProperty("stageVirtualCamera");

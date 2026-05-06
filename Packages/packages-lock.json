@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.toshi.vlivekit.artnetlink": {
+      "version": "https://github.com/toshi-kundesu/VLiveKit_ArtNetLink.git?path=/Assets/toshi.VLiveKit/ArtNetLink#main",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.cinemachine": "2.9.7"
+      },
+      "hash": "1759c1d465c4d886cfa3ae23cea502aea48b164d"
+    },
     "com.toshi.vlivekit.ledvision": {
       "version": "https://github.com/toshi-kundesu/VLiveKit_LEDVision.git?path=/Assets/toshi.VLiveKit/LEDVision#main",
       "depth": 0,
@@ -15,6 +24,15 @@
         "com.unity.visual-compositor": "0.30.7-preview"
       },
       "hash": "a83c27335f4b890b00f5919c54c5a2dd1689f67b"
+    },
+    "com.toshi.vlivekit.stagebuilder": {
+      "version": "https://github.com/toshi-kundesu/VLiveKit_StageBuilder.git?path=/Assets/toshi.VLiveKit/StageBuilder#main",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.cinemachine": "2.9.7"
+      },
+      "hash": "74c574ba24a1755a6234d8401ff73ab52948551d"
     },
     "com.toshi.vlivekit.testassetscontainer": {
       "version": "https://github.com/toshi-kundesu/VLiveKit_TestAssetsContainer.git?path=/Assets/toshi.VLiveKit/TestAssetsContainer#main",

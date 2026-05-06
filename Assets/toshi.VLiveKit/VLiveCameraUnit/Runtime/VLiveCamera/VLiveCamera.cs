@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Serialization;
 using Cinemachine;
+using toshi.VLiveKit;
 
 namespace toshi.VLiveKit.Photography
 {
@@ -28,6 +29,8 @@ namespace toshi.VLiveKit.Photography
         [SerializeField] private bool applyPresetOnStart = false;
 
         [Header("▼ Shared References")]
+        [SerializeField] private bool autoBindPlayableDirectorFromTimeTable = true;
+        [SerializeField] private string liveTimelineSectionName;
         [SerializeField] private PlayableDirector sharedPlayableDirector;
         [SerializeField] private VLiveLookTargetRig sharedLookTargetRig;
 
@@ -289,6 +292,7 @@ namespace toshi.VLiveKit.Photography
         private Transform resolvedDriftRigTarget;
         private CinemachineTransposer cachedBodyTransposer;
         private CinemachineFramingTransposer cachedFramingTransposer;
+        private VLiveTimeTable cachedTimeTable;
 
         private void Awake()
         {
@@ -303,8 +307,9 @@ namespace toshi.VLiveKit.Photography
 
             ResolveRigDriftTarget();
             CacheBodyDriverComponents();
+            AutoBindPlayableDirectorFromTimeTableIfNeeded();
 
-            if (!dollyBodyOffsetDirector)
+            if (!dollyBodyOffsetDirector && sharedPlayableDirector == null)
                 dollyBodyOffsetDirector = GetComponentInParent<PlayableDirector>();
         }
 
@@ -327,8 +332,9 @@ namespace toshi.VLiveKit.Photography
 
             ResolveRigDriftTarget();
             CacheBodyDriverComponents();
+            AutoBindPlayableDirectorFromTimeTableIfNeeded();
 
-            if (!dollyBodyOffsetDirector)
+            if (!dollyBodyOffsetDirector && sharedPlayableDirector == null)
                 dollyBodyOffsetDirector = GetComponentInParent<PlayableDirector>();
 
             if (!dollyBodyOffsetInitialized)
@@ -408,7 +414,70 @@ namespace toshi.VLiveKit.Photography
 
         private PlayableDirector ResolveDirector(PlayableDirector overrideDirector)
         {
-            return overrideDirector != null ? overrideDirector : sharedPlayableDirector;
+            if (overrideDirector != null)
+                return overrideDirector;
+
+            if (sharedPlayableDirector != null)
+                return sharedPlayableDirector;
+
+            PlayableDirector timeTableDirector = FindPlayableDirectorFromTimeTable();
+            if (timeTableDirector != null)
+            {
+                sharedPlayableDirector = timeTableDirector;
+            }
+
+            return timeTableDirector;
+        }
+
+        [ContextMenu("Resolve PlayableDirector From TimeTable")]
+        public void ResolvePlayableDirectorFromTimeTable()
+        {
+            AssignPlayableDirectorFromTimeTable(true);
+        }
+
+        private void AutoBindPlayableDirectorFromTimeTableIfNeeded()
+        {
+            if (!autoBindPlayableDirectorFromTimeTable)
+                return;
+
+            AssignPlayableDirectorFromTimeTable(false);
+        }
+
+        private void AssignPlayableDirectorFromTimeTable(bool overwriteExisting)
+        {
+            if (!overwriteExisting && sharedPlayableDirector != null)
+                return;
+
+            PlayableDirector timeTableDirector = FindPlayableDirectorFromTimeTable(overwriteExisting);
+            if (timeTableDirector == null)
+                return;
+
+            sharedPlayableDirector = timeTableDirector;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+#endif
+        }
+
+        private PlayableDirector FindPlayableDirectorFromTimeTable(bool allowManualResolve = false)
+        {
+            if (!allowManualResolve && !autoBindPlayableDirectorFromTimeTable)
+                return null;
+
+            VLiveTimeTable timeTable = ResolveTimeTable();
+            return timeTable != null ? timeTable.GetTimelineOrMaster(liveTimelineSectionName) : null;
+        }
+
+        private VLiveTimeTable ResolveTimeTable()
+        {
+            if (cachedTimeTable != null)
+                return cachedTimeTable;
+
+            cachedTimeTable = VLiveTimeTable.Get(this);
+            return cachedTimeTable;
         }
 
         private VLiveLookTargetRig ResolveLookTargetRig(VLiveLookTargetRig overrideRig)

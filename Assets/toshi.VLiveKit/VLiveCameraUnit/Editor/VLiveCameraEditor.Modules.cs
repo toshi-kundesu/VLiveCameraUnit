@@ -11,8 +11,16 @@ namespace toshi.VLiveKit.Photography.Editor
         {
             EditorGUILayout.BeginVertical(boxStyle);
 
+            DrawSafeProperty(autoBindPlayableDirectorFromTimeTable, "Auto Bind From TimeTable");
+            DrawSafeProperty(liveTimelineSectionName, "TimeTable Section");
             DrawSafeProperty(sharedPlayableDirector, "Shared PlayableDirector");
             DrawSafeProperty(sharedLookTargetRig, "Shared VLiveLookTargetRig");
+
+            if (GUILayout.Button("Resolve Director From TimeTable"))
+            {
+                CallPublic("ResolvePlayableDirectorFromTimeTable");
+                serializedObject.Update();
+            }
 
             DrawSafeStateLine("Director", sharedPlayableDirector);
             DrawSafeStateLine("Look Target Rig", sharedLookTargetRig);
@@ -147,7 +155,7 @@ namespace toshi.VLiveKit.Photography.Editor
                     }
                 }
 
-                DrawSafeStateLine("Director Override", breathingZoomDirector, null, "Use Shared");
+                DrawSafeStateLine("Director Override", breathingZoomDirector, null, "Use Shared/TimeTable");
             }
 
             EditorGUILayout.EndVertical();
@@ -178,7 +186,7 @@ namespace toshi.VLiveKit.Photography.Editor
                     InvokeNonPublic(target, "ApplyCurrentRigDriftOnce");
                 }
 
-                DrawSafeStateLine("Director Override", rigDriftDirector, null, "Use Shared");
+                DrawSafeStateLine("Director Override", rigDriftDirector, null, "Use Shared/TimeTable");
             }
 
             EditorGUILayout.EndVertical();
@@ -228,7 +236,7 @@ namespace toshi.VLiveKit.Photography.Editor
                     DrawSafeProperty(accentJumpThreshold, "Jump Threshold");
                 }
 
-                DrawSafeStateLine("Director Override", accentZoomDirector, null, "Use Shared");
+                DrawSafeStateLine("Director Override", accentZoomDirector, null, "Use Shared/TimeTable");
             }
 
             EditorGUILayout.EndVertical();
@@ -261,7 +269,7 @@ namespace toshi.VLiveKit.Photography.Editor
                     }
                 }
 
-                DrawSafeStateLine("Director Override", dollyBodyOffsetDirector, null, "Use Shared");
+                DrawSafeStateLine("Director Override", dollyBodyOffsetDirector, null, "Use Shared/TimeTable");
             }
 
             EditorGUILayout.EndVertical();
