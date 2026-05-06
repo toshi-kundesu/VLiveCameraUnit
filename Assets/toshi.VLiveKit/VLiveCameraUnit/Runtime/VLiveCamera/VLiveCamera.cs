@@ -22,6 +22,12 @@ namespace toshi.VLiveKit.Photography
             DampedSpring
         }
 
+        public enum TargetReferenceMode
+        {
+            HumanoidBone,
+            DirectTransform
+        }
+
         private const float Tau = 2f * Mathf.PI;
 
         [Header("▼ Camera Preset")]
@@ -48,8 +54,12 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("performerBoneCollector")]
         [SerializeField] private VLiveLookTargetRig lookTargetRig;
 
+        [SerializeField] private TargetReferenceMode lookTargetMode = TargetReferenceMode.HumanoidBone;
+
         [FormerlySerializedAs("aimBone")]
         [SerializeField] private HumanBodyBones lookTargetBone = HumanBodyBones.Head;
+
+        [SerializeField] private Transform lookTargetTransform;
 
         [FormerlySerializedAs("aimTargetGO")]
         [SerializeField] private GameObject lookTargetMarker;
@@ -64,8 +74,12 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("trackingBoneCollector")]
         [SerializeField] private VLiveLookTargetRig followTargetRig;
 
+        [SerializeField] private TargetReferenceMode followTargetMode = TargetReferenceMode.HumanoidBone;
+
         [FormerlySerializedAs("trackingBone")]
         [SerializeField] private HumanBodyBones followTargetBone = HumanBodyBones.Hips;
+
+        [SerializeField] private Transform followTargetTransform;
 
         [FormerlySerializedAs("trackingTargetGO")]
         [SerializeField] private GameObject followTargetMarker;

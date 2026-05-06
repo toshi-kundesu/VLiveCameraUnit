@@ -62,9 +62,18 @@ namespace toshi.VLiveKit.Photography.Editor
             using (new EditorGUI.DisabledScope(enableLookTargetModule == null || !enableLookTargetModule.boolValue))
             {
                 DrawSafeProperty(assignLookTargetOnStart, "Assign On Start");
-                DrawSafeProperty(lookTargetRig, "VLiveLookTargetRig Override");
+                DrawSafeProperty(lookTargetMode, "Target Mode");
 
-                DrawBonePicker(lookTargetBone, "Aim Bone");
+                if (IsTargetModeDirect(lookTargetMode))
+                {
+                    DrawSafeProperty(lookTargetTransform, "Target Transform");
+                }
+                else
+                {
+                    DrawSafeProperty(lookTargetRig, "VLiveLookTargetRig Override");
+                    DrawBonePicker(lookTargetBone, "Aim Bone");
+                }
+
                 DrawSafeProperty(lookTargetMarker, "Resolved Target");
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -83,7 +92,15 @@ namespace toshi.VLiveKit.Photography.Editor
                     GUI.enabled = true;
                 }
 
-                DrawSafeStateLine("Rig Override", lookTargetRig, null, "Use Shared");
+                if (IsTargetModeDirect(lookTargetMode))
+                {
+                    DrawSafeStateLine("Direct Target", lookTargetTransform, null, "Missing");
+                }
+                else
+                {
+                    DrawSafeStateLine("Rig Override", lookTargetRig, null, "Use Shared");
+                }
+
                 DrawSafeStateLine("Resolved", lookTargetMarker, null, "Unresolved");
             }
 
@@ -97,9 +114,18 @@ namespace toshi.VLiveKit.Photography.Editor
             using (new EditorGUI.DisabledScope(enableFollowTargetModule == null || !enableFollowTargetModule.boolValue))
             {
                 DrawSafeProperty(assignFollowTargetOnStart, "Assign On Start");
-                DrawSafeProperty(followTargetRig, "VLiveLookTargetRig Override");
+                DrawSafeProperty(followTargetMode, "Target Mode");
 
-                DrawBonePicker(followTargetBone, "Follow Bone");
+                if (IsTargetModeDirect(followTargetMode))
+                {
+                    DrawSafeProperty(followTargetTransform, "Target Transform");
+                }
+                else
+                {
+                    DrawSafeProperty(followTargetRig, "VLiveLookTargetRig Override");
+                    DrawBonePicker(followTargetBone, "Follow Bone");
+                }
+
                 DrawSafeProperty(followTargetMarker, "Resolved Target");
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -118,7 +144,15 @@ namespace toshi.VLiveKit.Photography.Editor
                     GUI.enabled = true;
                 }
 
-                DrawSafeStateLine("Rig Override", followTargetRig, null, "Use Shared");
+                if (IsTargetModeDirect(followTargetMode))
+                {
+                    DrawSafeStateLine("Direct Target", followTargetTransform, null, "Missing");
+                }
+                else
+                {
+                    DrawSafeStateLine("Rig Override", followTargetRig, null, "Use Shared");
+                }
+
                 DrawSafeStateLine("Resolved", followTargetMarker, null, "Unresolved");
             }
 
@@ -332,6 +366,12 @@ namespace toshi.VLiveKit.Photography.Editor
             }
 
             EditorGUILayout.PropertyField(prop, new GUIContent(label));
+        }
+
+        private bool IsTargetModeDirect(SerializedProperty modeProperty)
+        {
+            return modeProperty != null
+                && modeProperty.enumValueIndex == (int)VLiveCamera.TargetReferenceMode.DirectTransform;
         }
 
         private void DrawSafeStateLine(string label, SerializedProperty prop, string presentText = null, string missingText = "None")

@@ -24,28 +24,19 @@ namespace toshi.VLiveKit.Photography
                 return;
             }
 
-            VLiveLookTargetRig rig = ResolveLookTargetRig(lookTargetRig);
-            if (rig == null)
+            Transform targetTransform = ResolveLookTargetTransform();
+            if (targetTransform == null)
             {
-                Debug.LogWarning("[VLiveCamera] Look 用 VLiveLookTargetRig が指定されていません。", this);
                 return;
             }
 
-            lookTargetMarker = rig.GetBoneTG(lookTargetBone);
-
-            if (lookTargetMarker == null)
-            {
-                Debug.LogWarning($"[VLiveCamera] {lookTargetBone} のターゲットが見つかりません。", this);
-                return;
-            }
-
-            stageVirtualCamera.LookAt = lookTargetMarker.transform;
+            stageVirtualCamera.LookAt = targetTransform;
 
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(stageVirtualCamera);
 #endif
 
-            Debug.Log($"[VLiveCamera] Look Target → {lookTargetMarker.name}", this);
+            Debug.Log($"[VLiveCamera] Look Target → {targetTransform.name}", this);
         }
 
         [ContextMenu("Assign Aim Target")]
@@ -78,28 +69,19 @@ namespace toshi.VLiveKit.Photography
                 return;
             }
 
-            VLiveLookTargetRig rig = ResolveLookTargetRig(followTargetRig);
-            if (rig == null)
+            Transform targetTransform = ResolveFollowTargetTransform();
+            if (targetTransform == null)
             {
-                Debug.LogWarning("[VLiveCamera] Follow 用 VLiveLookTargetRig が指定されていません。", this);
                 return;
             }
 
-            followTargetMarker = rig.GetBoneTG(followTargetBone);
-
-            if (followTargetMarker == null)
-            {
-                Debug.LogWarning($"[VLiveCamera] Follow 用 {followTargetBone} のターゲットが見つかりません。", this);
-                return;
-            }
-
-            stageVirtualCamera.Follow = followTargetMarker.transform;
+            stageVirtualCamera.Follow = targetTransform;
 
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(stageVirtualCamera);
 #endif
 
-            Debug.Log($"[VLiveCamera] Follow Target → {followTargetMarker.name}", this);
+            Debug.Log($"[VLiveCamera] Follow Target → {targetTransform.name}", this);
         }
 
         [ContextMenu("Assign Tracking Target")]
@@ -112,6 +94,74 @@ namespace toshi.VLiveKit.Photography
         public void AssignFollow()
         {
             AssignFollowTarget();
+        }
+
+        private Transform ResolveLookTargetTransform()
+        {
+            if (lookTargetMode == TargetReferenceMode.DirectTransform)
+            {
+                if (lookTargetTransform == null)
+                {
+                    lookTargetMarker = null;
+                    Debug.LogWarning("[VLiveCamera] Look Target Transform が指定されていません。", this);
+                    return null;
+                }
+
+                lookTargetMarker = lookTargetTransform.gameObject;
+                return lookTargetTransform;
+            }
+
+            VLiveLookTargetRig rig = ResolveLookTargetRig(lookTargetRig);
+            if (rig == null)
+            {
+                lookTargetMarker = null;
+                Debug.LogWarning("[VLiveCamera] Look 用 VLiveLookTargetRig が指定されていません。", this);
+                return null;
+            }
+
+            lookTargetMarker = rig.GetBoneTG(lookTargetBone);
+
+            if (lookTargetMarker == null)
+            {
+                Debug.LogWarning($"[VLiveCamera] {lookTargetBone} のターゲットが見つかりません。", this);
+                return null;
+            }
+
+            return lookTargetMarker.transform;
+        }
+
+        private Transform ResolveFollowTargetTransform()
+        {
+            if (followTargetMode == TargetReferenceMode.DirectTransform)
+            {
+                if (followTargetTransform == null)
+                {
+                    followTargetMarker = null;
+                    Debug.LogWarning("[VLiveCamera] Follow Target Transform が指定されていません。", this);
+                    return null;
+                }
+
+                followTargetMarker = followTargetTransform.gameObject;
+                return followTargetTransform;
+            }
+
+            VLiveLookTargetRig rig = ResolveLookTargetRig(followTargetRig);
+            if (rig == null)
+            {
+                followTargetMarker = null;
+                Debug.LogWarning("[VLiveCamera] Follow 用 VLiveLookTargetRig が指定されていません。", this);
+                return null;
+            }
+
+            followTargetMarker = rig.GetBoneTG(followTargetBone);
+
+            if (followTargetMarker == null)
+            {
+                Debug.LogWarning($"[VLiveCamera] Follow 用 {followTargetBone} のターゲットが見つかりません。", this);
+                return null;
+            }
+
+            return followTargetMarker.transform;
         }
 
         // ============================================================

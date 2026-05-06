@@ -16,13 +16,17 @@ namespace toshi.VLiveKit.Photography.Editor
         private SerializedProperty enableLookTargetModule;
         private SerializedProperty assignLookTargetOnStart;
         private SerializedProperty lookTargetRig;
+        private SerializedProperty lookTargetMode;
         private SerializedProperty lookTargetBone;
+        private SerializedProperty lookTargetTransform;
         private SerializedProperty lookTargetMarker;
 
         private SerializedProperty enableFollowTargetModule;
         private SerializedProperty assignFollowTargetOnStart;
         private SerializedProperty followTargetRig;
+        private SerializedProperty followTargetMode;
         private SerializedProperty followTargetBone;
+        private SerializedProperty followTargetTransform;
         private SerializedProperty followTargetMarker;
 
         private SerializedProperty enableBreathingZoomModule;
@@ -100,13 +104,17 @@ namespace toshi.VLiveKit.Photography.Editor
             enableLookTargetModule = serializedObject.FindProperty("enableLookTargetModule");
             assignLookTargetOnStart = serializedObject.FindProperty("assignLookTargetOnStart");
             lookTargetRig = serializedObject.FindProperty("lookTargetRig");
+            lookTargetMode = serializedObject.FindProperty("lookTargetMode");
             lookTargetBone = serializedObject.FindProperty("lookTargetBone");
+            lookTargetTransform = serializedObject.FindProperty("lookTargetTransform");
             lookTargetMarker = serializedObject.FindProperty("lookTargetMarker");
 
             enableFollowTargetModule = serializedObject.FindProperty("enableFollowTargetModule");
             assignFollowTargetOnStart = serializedObject.FindProperty("assignFollowTargetOnStart");
             followTargetRig = serializedObject.FindProperty("followTargetRig");
+            followTargetMode = serializedObject.FindProperty("followTargetMode");
             followTargetBone = serializedObject.FindProperty("followTargetBone");
+            followTargetTransform = serializedObject.FindProperty("followTargetTransform");
             followTargetMarker = serializedObject.FindProperty("followTargetMarker");
 
             enableBreathingZoomModule = serializedObject.FindProperty("enableBreathingZoomModule");
