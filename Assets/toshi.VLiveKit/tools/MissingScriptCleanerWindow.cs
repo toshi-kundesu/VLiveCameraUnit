@@ -8,7 +8,7 @@ namespace toshi.VLiveKit.Utilities
 {
     public sealed class MissingScriptCleanerWindow : EditorWindow
     {
-        private const string MenuPath = "Window/toshi/VLiveKit/Missing Script Cleaner";
+        private const string MenuPath = "toshi/VLiveKit/Missing Script Cleaner";
 
         [System.Serializable]
         private sealed class ScanResult
