@@ -9,11 +9,9 @@
                              }
                          ],
     "dependencies":  {
-                         "com.toshi.vlivekit.stagebuilder":  "0.0.1",
-                         "com.toshi.vlivekit.artnetlink":  "0.0.1",
-                         "com.toshi.vlivekit.lensfilters":  "0.0.1",
-                         "com.toshi.vlivekit.ledvision":  "0.0.1",
-                         "com.toshi.vlivekit.testassetscontainer":  "0.0.2",
+                         "com.toshi.vlivekit.lensfilters":  "0.0.2",
+                         "com.toshi.vlivekit.ledvision":  "0.0.2",
+                         "com.toshi.vlivekit.testassetscontainer":  "0.0.10",
                          "com.unity.cinemachine":  "2.9.7",
                          "com.unity.collab-proxy":  "2.12.4",
                          "com.unity.feature.development":  "1.0.1",
