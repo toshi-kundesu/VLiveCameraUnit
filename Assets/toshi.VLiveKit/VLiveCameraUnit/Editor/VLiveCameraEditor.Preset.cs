@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,93 +13,57 @@ namespace toshi.VLiveKit.Photography.Editor
             EditorGUILayout.PropertyField(preset);
             EditorGUILayout.PropertyField(applyPresetOnStart);
 
+            EditorGUILayout.Space(6f);
+
+            VLiveCamera camera = (VLiveCamera)target;
+
             using (new EditorGUILayout.HorizontalScope())
             {
-                GUI.enabled = preset.objectReferenceValue != null;
-                if (GUILayout.Button("Apply Preset"))
+                if (GUILayout.Button("Create This Preset", GUILayout.Height(28f)))
                 {
-                    CallPublic("ApplyPreset");
+                    Undo.RecordObject(camera, "Create VLiveCamera Preset");
+
+                    camera.CreatePresetFromThisCamera();
+
+                    EditorUtility.SetDirty(camera);
                     serializedObject.Update();
                 }
 
-                if (GUILayout.Button("Capture To Preset"))
+                using (new EditorGUI.DisabledScope(preset.objectReferenceValue == null))
                 {
-                    CallPublic("CaptureToPreset");
-                    serializedObject.Update();
-                }
+                    if (GUILayout.Button("Capture To Preset", GUILayout.Height(28f)))
+                    {
+                        camera.CaptureToPreset();
 
-                if (GUILayout.Button("Ping Preset"))
-                {
-                    EditorGUIUtility.PingObject(preset.objectReferenceValue);
+                        EditorUtility.SetDirty(camera);
+                        serializedObject.Update();
+                    }
                 }
-                GUI.enabled = true;
             }
 
             EditorGUILayout.Space(4f);
 
-            if (GUILayout.Button("Create New Preset"))
+            if (GUILayout.Button("Create Presets For All VLiveCameras In Scene", GUILayout.Height(30f)))
             {
-                CreateNewPreset();
+                VLiveCamera.CreatePresetsForAllSceneCameras();
+
                 serializedObject.Update();
             }
 
-            if (preset.objectReferenceValue == null)
+            using (new EditorGUI.DisabledScope(preset.objectReferenceValue == null))
             {
-                EditorGUILayout.HelpBox("まずはカメラをいい感じに作ってから Preset に保存すると強いです。", MessageType.Info);
+                if (GUILayout.Button("Apply Preset", GUILayout.Height(24f)))
+                {
+                    Undo.RecordObject(camera, "Apply VLiveCamera Preset");
+
+                    camera.ApplyPreset();
+
+                    EditorUtility.SetDirty(camera);
+                    serializedObject.Update();
+                }
             }
 
             EditorGUILayout.EndVertical();
-        }
-
-        private void CreateNewPreset()
-        {
-            string defaultFolder = "Assets/toshi.VLiveKit/Camera/Presets";
-            if (!AssetDatabase.IsValidFolder(defaultFolder))
-            {
-                EnsureFolderRecursive(defaultFolder);
-            }
-
-            string path = EditorUtility.SaveFilePanelInProject(
-                "Create VLiveCamera Preset",
-                "NewVLiveCameraPreset",
-                "asset",
-                "保存先を選択してください",
-                defaultFolder
-            );
-
-            if (string.IsNullOrEmpty(path))
-                return;
-
-            VLiveCameraPreset newPreset = ScriptableObject.CreateInstance<VLiveCameraPreset>();
-            newPreset.presetDisplayName = Path.GetFileNameWithoutExtension(path);
-
-            AssetDatabase.CreateAsset(newPreset, path);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            preset.objectReferenceValue = newPreset;
-            serializedObject.ApplyModifiedProperties();
-
-            EditorGUIUtility.PingObject(newPreset);
-            Debug.Log($"[VLiveCamera] New Preset Created → {path}");
-        }
-
-        private static void EnsureFolderRecursive(string targetFolder)
-        {
-            string[] parts = targetFolder.Split('/');
-            if (parts.Length == 0 || parts[0] != "Assets")
-                return;
-
-            string current = "Assets";
-            for (int i = 1; i < parts.Length; i++)
-            {
-                string next = current + "/" + parts[i];
-                if (!AssetDatabase.IsValidFolder(next))
-                {
-                    AssetDatabase.CreateFolder(current, parts[i]);
-                }
-                current = next;
-            }
         }
     }
 }
