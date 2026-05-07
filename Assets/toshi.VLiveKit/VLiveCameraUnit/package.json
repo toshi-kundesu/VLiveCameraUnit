@@ -1,6 +1,6 @@
 ﻿{
     "name":  "com.toshi.vlivekit.cameraunit",
-    "version":  "0.1.1",
+    "version":  "0.1.2",
     "displayName":  "VLive Camera Unit",
     "description":  "Camera tools for virtual live production.",
     "unity":  "2022.3",
@@ -12,6 +12,13 @@
                        "url":  "git+https://github.com/toshi-kundesu/VLiveKit_camera.git"
                    },
     "license":  "Unlicense",
+    "samples":  [
+                    {
+                        "displayName":  "Empty Scene",
+                        "description":  "A blank scene for starting a VLive Camera Unit setup.",
+                        "path":  "Samples~/Empty Scene"
+                    }
+                ],
     "dependencies":  {
                          "com.unity.cinemachine":  "2.9.7"
                      }

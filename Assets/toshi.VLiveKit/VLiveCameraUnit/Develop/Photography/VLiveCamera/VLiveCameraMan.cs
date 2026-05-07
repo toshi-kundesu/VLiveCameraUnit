@@ -3,6 +3,8 @@
 // this comment & namespace can be removed. you can use this code freely.
 // last update: 2024/11/04
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using toshi.VLiveKit.Photography;
@@ -11,7 +13,121 @@ namespace toshi.VLiveKit.Photography
 {
 public class VLiveCameraMan : MonoBehaviour
 {
+    public enum OperationState
+    {
+        Running,
+        Disabled,
+        MissingCamera,
+        MissingTarget
+    }
+
+    public struct Status
+    {
+        public string cameraId;
+        public string objectName;
+        public OperationState state;
+        public bool gameObjectActive;
+        public bool componentEnabled;
+        public bool cameraEnabled;
+        public bool hasTarget;
+        public bool autoFocus;
+        public bool syncTimeline;
+        public bool useRandomMotion;
+        public bool useRotation;
+        public float fieldOfView;
+        public float focusDistance;
+        public Vector3 position;
+        public string targetName;
+
+        public bool IsOperational => state == OperationState.Running;
+
+        public string ToSummaryLine()
+        {
+            string targetLabel = hasTarget ? targetName : "No Target";
+            string cameraLabel = cameraEnabled ? $"FOV {fieldOfView:0.0}" : "Camera Off";
+            return $"{cameraId} [{state}] {cameraLabel} / {targetLabel}";
+        }
+    }
+
+    private static readonly List<VLiveCameraMan> activeCameraMen = new List<VLiveCameraMan>();
+    private static readonly List<Status> statusBuffer = new List<Status>();
+
+    public static event Action<int> ActiveCountChanged;
+
+    public static int ActiveCount
+    {
+        get
+        {
+            PurgeMissingCameraMen();
+            return activeCameraMen.Count;
+        }
+    }
+
+    public static IReadOnlyList<VLiveCameraMan> ActiveCameraMen
+    {
+        get
+        {
+            PurgeMissingCameraMen();
+            return activeCameraMen;
+        }
+    }
+
+    public static int GetSceneCount(bool includeInactive = true)
+    {
+        return FindObjectsOfType<VLiveCameraMan>(includeInactive).Length;
+    }
+
+    public static IReadOnlyList<Status> GetActiveStatuses()
+    {
+        PurgeMissingCameraMen();
+        statusBuffer.Clear();
+
+        for (int i = 0; i < activeCameraMen.Count; i++)
+        {
+            if (activeCameraMen[i] != null)
+            {
+                statusBuffer.Add(activeCameraMen[i].GetStatus());
+            }
+        }
+
+        return statusBuffer;
+    }
+
+    public static Status[] GetSceneStatuses(bool includeInactive = true)
+    {
+        VLiveCameraMan[] cameraMen = FindObjectsOfType<VLiveCameraMan>(includeInactive);
+        Array.Sort(cameraMen, CompareCameraMenForMonitor);
+
+        Status[] statuses = new Status[cameraMen.Length];
+        for (int i = 0; i < cameraMen.Length; i++)
+        {
+            statuses[i] = cameraMen[i].GetStatus();
+        }
+
+        return statuses;
+    }
+
+    public static string BuildStatusReport(bool includeInactive = true)
+    {
+        Status[] statuses = GetSceneStatuses(includeInactive);
+        if (statuses.Length == 0)
+        {
+            return "[VLiveCameraMan] No cameras found.";
+        }
+
+        System.Text.StringBuilder builder = new System.Text.StringBuilder();
+        builder.AppendLine($"[VLiveCameraMan] cameras: {statuses.Length}, active: {ActiveCount}");
+        for (int i = 0; i < statuses.Length; i++)
+        {
+            builder.AppendLine(statuses[i].ToSummaryLine());
+        }
+
+        return builder.ToString().TrimEnd();
+    }
+
     public bool useRandomTimeOffset = true;
+    [SerializeField]
+    private string cameraId;
     public Transform target; // 追跡するオブジェクト
     public Vector3 offset; // オフセット
     [Range(0, 10)]
@@ -64,6 +180,23 @@ public class VLiveCameraMan : MonoBehaviour
     private Quaternion initialRotation;
     private float randomOffsetX;
     private float randomOffsetY;
+
+    public string CameraId => string.IsNullOrEmpty(cameraId) ? gameObject.name : cameraId;
+
+    void OnEnable()
+    {
+        Register(this);
+    }
+
+    void OnDisable()
+    {
+        Unregister(this);
+    }
+
+    void OnDestroy()
+    {
+        Unregister(this);
+    }
 
     void Start()
     {
@@ -190,6 +323,133 @@ public class VLiveCameraMan : MonoBehaviour
     float Remap(float value, float from1, float to1, float from2, float to2)
     {
         return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    }
+
+    [ContextMenu("Log VLiveCameraMan Count")]
+    void LogCameraManCount()
+    {
+        Debug.Log(BuildStatusReport(true), this);
+    }
+
+    public Status GetStatus()
+    {
+        Camera statusCamera = ResolveCamera();
+        bool hasCamera = statusCamera != null;
+        bool goActive = gameObject.activeInHierarchy;
+        bool componentActive = enabled;
+        bool cameraActive = hasCamera && statusCamera.isActiveAndEnabled;
+        bool hasTarget = target != null;
+
+        OperationState state = OperationState.Running;
+        if (!goActive || !componentActive)
+        {
+            state = OperationState.Disabled;
+        }
+        else if (!hasCamera)
+        {
+            state = OperationState.MissingCamera;
+        }
+        else if (!hasTarget)
+        {
+            state = OperationState.MissingTarget;
+        }
+
+        return new Status
+        {
+            cameraId = CameraId,
+            objectName = gameObject.name,
+            state = state,
+            gameObjectActive = goActive,
+            componentEnabled = componentActive,
+            cameraEnabled = cameraActive,
+            hasTarget = hasTarget,
+            autoFocus = autoFocus,
+            syncTimeline = syncTimeline,
+            useRandomMotion = useRandomMotion,
+            useRotation = useRotation,
+            fieldOfView = hasCamera ? statusCamera.fieldOfView : 0f,
+            focusDistance = focusDistance,
+            position = transform.position,
+            targetName = hasTarget ? target.name : string.Empty
+        };
+    }
+
+    private Camera ResolveCamera()
+    {
+        if (cam == null)
+        {
+            cam = GetComponent<Camera>();
+        }
+
+        return cam;
+    }
+
+    private static void Register(VLiveCameraMan cameraMan)
+    {
+        if (cameraMan == null || activeCameraMen.Contains(cameraMan))
+        {
+            return;
+        }
+
+        activeCameraMen.Add(cameraMan);
+        ActiveCountChanged?.Invoke(activeCameraMen.Count);
+    }
+
+    private static void Unregister(VLiveCameraMan cameraMan)
+    {
+        if (cameraMan == null)
+        {
+            return;
+        }
+
+        if (activeCameraMen.Remove(cameraMan))
+        {
+            ActiveCountChanged?.Invoke(activeCameraMen.Count);
+        }
+    }
+
+    private static void PurgeMissingCameraMen()
+    {
+        bool changed = false;
+        for (int i = activeCameraMen.Count - 1; i >= 0; i--)
+        {
+            if (activeCameraMen[i] == null)
+            {
+                activeCameraMen.RemoveAt(i);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            ActiveCountChanged?.Invoke(activeCameraMen.Count);
+        }
+    }
+
+    private static int CompareCameraMenForMonitor(VLiveCameraMan a, VLiveCameraMan b)
+    {
+        if (a == b)
+        {
+            return 0;
+        }
+
+        if (a == null)
+        {
+            return 1;
+        }
+
+        if (b == null)
+        {
+            return -1;
+        }
+
+        int idCompare = string.Compare(a.CameraId, b.CameraId, StringComparison.OrdinalIgnoreCase);
+        if (idCompare != 0)
+        {
+            return idCompare;
+        }
+
+        return a.GetInstanceID().CompareTo(b.GetInstanceID());
     }
 
     void OnDrawGizmos()
