@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 
 [DefaultExecutionOrder(110)]
+[DisallowMultipleComponent]
 [MovedFrom(false, sourceNamespace: null, sourceAssembly: null, sourceClassName: "BoneCollector")]
 public class VLiveLookTargetRig : MonoBehaviour
 {
@@ -51,10 +52,34 @@ public class VLiveLookTargetRig : MonoBehaviour
     public Transform LookTargetRoot => lookTargetRoot;
     public IReadOnlyList<LookTargetChannel> LookTargetChannels => lookTargetChannels;
 
+    public static VLiveLookTargetRig Instance => Get();
     public bool IsPerformerLive { get; private set; }
+
+    private static VLiveLookTargetRig cachedInstance;
+
+    private void Awake()
+    {
+        TryRegisterSceneSingleton();
+    }
+
+    private void OnEnable()
+    {
+        TryRegisterSceneSingleton();
+    }
+
+    private void OnDestroy()
+    {
+        if (cachedInstance == this)
+        {
+            cachedInstance = null;
+        }
+    }
 
     private void Start()
     {
+        if (!enabled)
+            return;
+
         AutoResolvePerformer();
         BuildTargets();
         RefreshLiveState();
@@ -62,10 +87,69 @@ public class VLiveLookTargetRig : MonoBehaviour
 
     private void Update()
     {
+        if (!enabled)
+            return;
+
         if (syncActiveStateEveryFrame)
         {
             RefreshLiveState();
         }
+    }
+
+    public static VLiveLookTargetRig Get(Component caller = null)
+    {
+        if (caller != null)
+        {
+            VLiveLookTargetRig parentRig = caller.GetComponentInParent<VLiveLookTargetRig>(true);
+            if (parentRig != null && parentRig.enabled)
+            {
+                cachedInstance = parentRig;
+                return cachedInstance;
+            }
+        }
+
+        if (cachedInstance != null && cachedInstance.enabled)
+        {
+            return cachedInstance;
+        }
+
+        cachedInstance = FindEnabledSceneInstance();
+        return cachedInstance;
+    }
+
+    private bool TryRegisterSceneSingleton()
+    {
+        if (cachedInstance == null || cachedInstance == this)
+        {
+            cachedInstance = this;
+            return true;
+        }
+
+        if (cachedInstance != null && !cachedInstance.enabled)
+        {
+            cachedInstance = this;
+            return true;
+        }
+
+        Debug.LogError(
+            $"[VLiveLookTargetRig] Only one VLiveLookTargetRig can exist in a scene. Existing: {cachedInstance.name}, duplicate: {name}",
+            this);
+        enabled = false;
+        return false;
+    }
+
+    private static VLiveLookTargetRig FindEnabledSceneInstance()
+    {
+        VLiveLookTargetRig[] instances = FindObjectsOfType<VLiveLookTargetRig>(true);
+        for (int i = 0; i < instances.Length; i++)
+        {
+            if (instances[i] != null && instances[i].enabled)
+            {
+                return instances[i];
+            }
+        }
+
+        return instances.Length > 0 ? instances[0] : null;
     }
 
     // ----------------------------
@@ -86,7 +170,15 @@ public class VLiveLookTargetRig : MonoBehaviour
 
         if (vLivePerformer != null)
         {
-            performerAnimator = vLivePerformer.PerformerAnimator;
+            if (performerAnimator == null)
+            {
+                performerAnimator = vLivePerformer.PerformerAnimator;
+            }
+
+            if (performerAnimator == null)
+            {
+                performerAnimator = vLivePerformer.GetComponentInChildren<Animator>(true);
+            }
 
             if (string.IsNullOrWhiteSpace(performerName))
             {
@@ -102,20 +194,28 @@ public class VLiveLookTargetRig : MonoBehaviour
     [ContextMenu("Build Targets")]
     public void BuildTargets()
     {
-        ClearTargets();
+        AutoResolvePerformer();
 
         _boneMap.Clear();
-        _targetMap.Clear();
-        _constraintMap.Clear();
-        lookTargetChannels.Clear();
+
+        if (performerAnimator == null)
+        {
+            Debug.LogWarning("[VLiveLookTargetRig] Performer Animator is not assigned.", this);
+            return;
+        }
 
         CollectBones(performerAnimator, fallbackHumanoidAvatar, _boneMap);
 
         if (_boneMap.Count == 0)
         {
-            Debug.LogWarning("[VLiveLookTargetRig] Bone collect failed");
+            Debug.LogWarning("[VLiveLookTargetRig] Bone collect failed.", this);
             return;
         }
+
+        ClearTargets();
+        _targetMap.Clear();
+        _constraintMap.Clear();
+        lookTargetChannels.Clear();
 
         EnsureRoot();
 
@@ -197,6 +297,7 @@ public class VLiveLookTargetRig : MonoBehaviour
         }
 
         if (swapped) anim.avatar = original;
+
     }
 
     private void EnsureRoot()
@@ -234,6 +335,17 @@ public class VLiveLookTargetRig : MonoBehaviour
     public GameObject GetBoneTG(HumanBodyBones bone)
     {
         if (_targetMap.TryGetValue(bone, out var g)) return g;
+
+        for (int i = 0; i < lookTargetChannels.Count; i++)
+        {
+            LookTargetChannel channel = lookTargetChannels[i];
+            if (channel.targetBone == bone && channel.lookTargetObject != null)
+            {
+                _targetMap[bone] = channel.lookTargetObject;
+                return channel.lookTargetObject;
+            }
+        }
+
         return null;
     }
 }

@@ -119,9 +119,10 @@ public class VLiveLookTargetRigEditor : Editor
 
             if (GUILayout.Button("Build Targets", GUILayout.Height(28)))
             {
-                Undo.RecordObject(rig, "Build Targets");
+                Undo.RegisterFullObjectHierarchyUndo(rig.gameObject, "Build Targets");
                 rig.BuildTargets();
                 EditorUtility.SetDirty(rig);
+                serializedObject.Update();
             }
         }
 

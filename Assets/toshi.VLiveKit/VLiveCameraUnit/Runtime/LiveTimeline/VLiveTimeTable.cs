@@ -33,6 +33,8 @@ namespace toshi.VLiveKit
         [SerializeField] private List<VLiveTimelineSlot> sectionTimelines = new List<VLiveTimelineSlot>();
 
         [Header("Auto Find")]
+        [SerializeField] private bool useAttachedDirectorAsMaster = true;
+
         [SerializeField] private bool autoFindOnAwake = true;
 
         [SerializeField] private bool includeInactive = true;
@@ -41,12 +43,18 @@ namespace toshi.VLiveKit
         private readonly Dictionary<string, PlayableDirector> sectionMap =
             new Dictionary<string, PlayableDirector>(StringComparer.OrdinalIgnoreCase);
 
+        public static VLiveTimeTable Instance => Get();
         public PlayableDirector MasterTimeline => masterTimeline;
         public IReadOnlyList<VLiveTimelineSlot> SectionTimelines => sectionTimelines;
 
         private void Awake()
         {
-            cachedInstance = this;
+            if (!TryRegisterSceneSingleton())
+            {
+                return;
+            }
+
+            AssignAttachedDirectorAsMasterIfNeeded();
 
             if (autoFindOnAwake)
             {
@@ -58,16 +66,22 @@ namespace toshi.VLiveKit
 
         private void OnEnable()
         {
-            if (cachedInstance == null)
-            {
-                cachedInstance = this;
-            }
+            TryRegisterSceneSingleton();
 
             RebuildMap();
         }
 
+        private void OnDestroy()
+        {
+            if (cachedInstance == this)
+            {
+                cachedInstance = null;
+            }
+        }
+
         private void OnValidate()
         {
+            AssignAttachedDirectorAsMasterIfNeeded();
             RebuildMap();
         }
 
@@ -80,24 +94,55 @@ namespace toshi.VLiveKit
             if (caller != null)
             {
                 VLiveTimeTable parentTimeTable = caller.GetComponentInParent<VLiveTimeTable>(true);
-                if (parentTimeTable != null)
+                if (parentTimeTable != null && parentTimeTable.enabled)
                 {
                     cachedInstance = parentTimeTable;
                     return cachedInstance;
                 }
             }
 
-            if (cachedInstance != null)
+            if (cachedInstance != null && cachedInstance.enabled)
             {
                 return cachedInstance;
             }
 
-#if UNITY_2023_1_OR_NEWER
-            cachedInstance = FindFirstObjectByType<VLiveTimeTable>(FindObjectsInactive.Include);
-#else
-            cachedInstance = FindObjectOfType<VLiveTimeTable>(true);
-#endif
+            cachedInstance = FindEnabledSceneInstance();
             return cachedInstance;
+        }
+
+        private bool TryRegisterSceneSingleton()
+        {
+            if (cachedInstance == null || cachedInstance == this)
+            {
+                cachedInstance = this;
+                return true;
+            }
+
+            if (cachedInstance != null && !cachedInstance.enabled)
+            {
+                cachedInstance = this;
+                return true;
+            }
+
+            Debug.LogError(
+                $"[VLiveTimeTable] Only one VLiveTimeTable can exist in a scene. Existing: {cachedInstance.name}, duplicate: {name}",
+                this);
+            enabled = false;
+            return false;
+        }
+
+        private static VLiveTimeTable FindEnabledSceneInstance()
+        {
+            VLiveTimeTable[] instances = FindObjectsOfType<VLiveTimeTable>(true);
+            for (int i = 0; i < instances.Length; i++)
+            {
+                if (instances[i] != null && instances[i].enabled)
+                {
+                    return instances[i];
+                }
+            }
+
+            return instances.Length > 0 ? instances[0] : null;
         }
 
         /// <summary>
@@ -117,6 +162,27 @@ namespace toshi.VLiveKit
             }
 
             return masterTimeline;
+        }
+
+        public void CollectAssignedDirectors(List<PlayableDirector> results)
+        {
+            if (results == null)
+            {
+                return;
+            }
+
+            AddDirectorIfMissing(results, masterTimeline);
+
+            for (int i = 0; i < sectionTimelines.Count; i++)
+            {
+                var slot = sectionTimelines[i];
+                if (slot == null)
+                {
+                    continue;
+                }
+
+                AddDirectorIfMissing(results, slot.director);
+            }
         }
 
         /// <summary>
@@ -252,13 +318,9 @@ namespace toshi.VLiveKit
         [ContextMenu("Auto Collect Child Directors")]
         public void AutoCollectChildDirectors()
         {
-            if (masterTimeline == null)
-            {
-                Debug.LogWarning("[VLiveTimeTable] MasterTimeline is not assigned.", this);
-                return;
-            }
+            AssignAttachedDirectorAsMasterIfNeeded();
 
-            var root = masterTimeline.transform;
+            var root = masterTimeline != null ? masterTimeline.transform : transform;
             var foundDirectors = root.GetComponentsInChildren<PlayableDirector>(includeInactive);
 
             for (int i = 0; i < foundDirectors.Length; i++)
@@ -297,6 +359,35 @@ namespace toshi.VLiveKit
             }
 
             RebuildMap();
+        }
+
+        [ContextMenu("Assign Attached Director As Master")]
+        public void AssignAttachedDirectorAsMasterIfNeeded()
+        {
+            if (!useAttachedDirectorAsMaster || masterTimeline != null)
+            {
+                return;
+            }
+
+            masterTimeline = GetComponent<PlayableDirector>();
+        }
+
+        private static void AddDirectorIfMissing(List<PlayableDirector> directors, PlayableDirector director)
+        {
+            if (director == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < directors.Count; i++)
+            {
+                if (directors[i] == director)
+                {
+                    return;
+                }
+            }
+
+            directors.Add(director);
         }
 
         [ContextMenu("Rebuild Section Map")]

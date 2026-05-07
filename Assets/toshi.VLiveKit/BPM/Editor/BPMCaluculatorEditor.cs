@@ -7,7 +7,7 @@ public class BPMCalculatorEditor : EditorWindow
     private List<float> clickTimes = new List<float>();
     private float _bpm = 120; // デフォルトのBPM
 
-    [MenuItem("toshi/VLiveKit/BPM Calculator")]
+    [MenuItem("toshi/VLiveKit/Camera/BPM Calculator")]
     public static void ShowWindow()
     {
         GetWindow<BPMCalculatorEditor>("BPM Calculator");

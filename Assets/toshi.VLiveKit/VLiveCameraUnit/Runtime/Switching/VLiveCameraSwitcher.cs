@@ -1,9 +1,11 @@
 // Assets/toshi.VLiveKit/camera/Runtime/Actor/Switching/VLiveCameraSwitcher.cs
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class VLiveCameraSwitcher : MonoBehaviour
 {
@@ -12,6 +14,26 @@ public class VLiveCameraSwitcher : MonoBehaviour
         NumberRow,
         Numpad,
         CustomHotkeys
+    }
+
+    public enum LiveCameraOutputMode
+    {
+        ProgramOutputCamera,
+        DirectCameraEnable
+    }
+
+    public enum LiveCameraTransitionType
+    {
+        Cut,
+        CrossFade,
+        Random
+    }
+
+    public enum LiveAutoCutMode
+    {
+        RandomInterval,
+        SequentialBeat,
+        RandomBeat
     }
 
     [Serializable]
@@ -33,6 +55,10 @@ public class VLiveCameraSwitcher : MonoBehaviour
     [Header("Live Program Output")]
     [SerializeField] private Camera programOutputCamera;
 
+    [SerializeField] private LiveCameraOutputMode liveCameraOutputMode = LiveCameraOutputMode.ProgramOutputCamera;
+
+    [SerializeField] private RawImage programOutputImage;
+
     [Header("Live Camera Input")]
     [SerializeField] private LiveCameraInputMode liveCameraInputMode = LiveCameraInputMode.NumberRow;
 
@@ -47,9 +73,24 @@ public class VLiveCameraSwitcher : MonoBehaviour
     [Header("Live Auto Cut")]
     [SerializeField] private bool useAutoLiveCut = true;
 
+    [SerializeField] private LiveAutoCutMode autoLiveCutMode = LiveAutoCutMode.RandomInterval;
+
     [SerializeField] private float minLiveCutInterval = 1.0f;
 
     [SerializeField] private float maxLiveCutInterval = 3.0f;
+
+    [SerializeField] private int liveBpm = 120;
+
+    [SerializeField] private int[] liveChangeBeats = { 8 };
+
+    [Header("Live Transition")]
+    [SerializeField] private LiveCameraTransitionType liveTransitionType = LiveCameraTransitionType.Cut;
+
+    [SerializeField] private Camera crossFadeCamera;
+
+    [SerializeField] private RawImage crossFadeImage;
+
+    [SerializeField] private float crossFadeDuration = 1.0f;
 
     [Header("Live UI Colors")]
     [SerializeField] private Color onAirColor = Color.red;
@@ -57,11 +98,20 @@ public class VLiveCameraSwitcher : MonoBehaviour
     [SerializeField] private Color standbyColor = Color.white;
 
     [Header("Live Volume Layer")]
-    [SerializeField] private string sharedVolumeLayerName = "CAM_ALL_VOLUME";
+    [SerializeField] private string sharedVolumeLayerName = string.Empty;
 
     private float liveCutInterval;
     private float liveCutTimer;
     private int currentLiveShotIndex;
+    private int currentLiveChangeBeat = 8;
+    private RenderTexture programOutputRenderTexture;
+    private int programOutputRenderTextureWidth;
+    private int programOutputRenderTextureHeight;
+    private RenderTexture programOutputPreviousTargetTexture;
+    private RenderTexture crossFadeRenderTexture;
+    private int crossFadeRenderTextureWidth;
+    private int crossFadeRenderTextureHeight;
+    private Coroutine liveTransitionCoroutine;
 
     private struct LiveSensorPreset
     {
@@ -101,10 +151,11 @@ public class VLiveCameraSwitcher : MonoBehaviour
             currentLiveShotIndex = validIndex;
         }
 
-        if (useAutoLiveCut)
-        {
-            liveCutInterval = UnityEngine.Random.Range(minLiveCutInterval, maxLiveCutInterval);
-        }
+        InitializeProgramOutputImage();
+        InitializeCrossFadeImage();
+        SetLiveCameraEnabledStates(currentLiveShotIndex);
+        ApplyCurrentLiveShotNow();
+        ScheduleNextLiveCut();
     }
 
     private void Update()
@@ -112,26 +163,27 @@ public class VLiveCameraSwitcher : MonoBehaviour
         if (liveCameraShots == null || liveCameraShots.Count == 0)
             return;
 
-        if (programOutputCamera == null)
+        if (liveCameraOutputMode == LiveCameraOutputMode.ProgramOutputCamera && programOutputCamera == null)
             return;
 
-        if (HandleLiveCameraInput())
+        if (!IsLiveTransitioning() && HandleLiveCameraInput())
         {
             liveCutTimer = 0f;
+            ScheduleNextLiveCut();
         }
 
-        if (useAutoLiveCut)
+        if (!IsLiveTransitioning() && useAutoLiveCut)
         {
             liveCutTimer += Time.deltaTime;
             if (liveCutTimer >= liveCutInterval)
             {
                 liveCutTimer = 0f;
 
-                int nextIndex = FindRandomAvailableLiveShotIndex();
+                int nextIndex = ResolveNextAutoLiveShotIndex();
                 if (nextIndex >= 0)
                 {
-                    CutToLiveCameraIndexInternal(nextIndex);
-                    liveCutInterval = UnityEngine.Random.Range(minLiveCutInterval, maxLiveCutInterval);
+                    SwitchToLiveCameraIndexInternal(nextIndex);
+                    ScheduleNextLiveCut();
                 }
             }
         }
@@ -161,7 +213,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
                         int shotIndex = ResolveLiveShotIndexFromNumberKey(keyNumber);
                         if (shotIndex >= 0)
                         {
-                            CutToLiveCameraIndexInternal(shotIndex);
+                            SwitchToLiveCameraIndexInternal(shotIndex);
                             return true;
                         }
                     }
@@ -179,7 +231,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
                         int shotIndex = ResolveLiveShotIndexFromNumberKey(keyNumber);
                         if (shotIndex >= 0)
                         {
-                            CutToLiveCameraIndexInternal(shotIndex);
+                            SwitchToLiveCameraIndexInternal(shotIndex);
                             return true;
                         }
                     }
@@ -201,7 +253,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
                     if (Input.GetKeyDown(shot.liveCutKey))
                     {
-                        CutToLiveCameraIndexInternal(i);
+                        SwitchToLiveCameraIndexInternal(i);
                         return true;
                     }
                 }
@@ -253,8 +305,6 @@ public class VLiveCameraSwitcher : MonoBehaviour
         int count = liveCameraShots.Count;
         if (startIndex < 0)
             startIndex = 0;
-        if (startIndex >= count)
-            startIndex = count - 1;
 
         for (int i = 0; i < count; i++)
         {
@@ -271,6 +321,11 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
     private int FindRandomAvailableLiveShotIndex()
     {
+        return FindRandomAvailableLiveShotIndex(false);
+    }
+
+    private int FindRandomAvailableLiveShotIndex(bool excludeCurrent)
+    {
         if (liveCameraShots == null || liveCameraShots.Count == 0)
             return -1;
 
@@ -280,6 +335,9 @@ public class VLiveCameraSwitcher : MonoBehaviour
             LiveCameraShot shot = liveCameraShots[i];
             if (shot != null && shot.includeInProgram && shot.liveCamera != null)
             {
+                if (excludeCurrent && i == currentLiveShotIndex && liveCameraShots.Count > 1)
+                    continue;
+
                 availableShotIndexes.Add(i);
             }
         }
@@ -289,6 +347,82 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
         int randomIndex = UnityEngine.Random.Range(0, availableShotIndexes.Count);
         return availableShotIndexes[randomIndex];
+    }
+
+    private int ResolveNextAutoLiveShotIndex()
+    {
+        switch (autoLiveCutMode)
+        {
+            case LiveAutoCutMode.SequentialBeat:
+                return FindNextAvailableLiveShotIndex(currentLiveShotIndex + 1);
+            case LiveAutoCutMode.RandomBeat:
+                return FindRandomAvailableLiveShotIndex(true);
+            case LiveAutoCutMode.RandomInterval:
+            default:
+                return FindRandomAvailableLiveShotIndex(true);
+        }
+    }
+
+    private void ScheduleNextLiveCut()
+    {
+        if (!useAutoLiveCut)
+            return;
+
+        switch (autoLiveCutMode)
+        {
+            case LiveAutoCutMode.SequentialBeat:
+            case LiveAutoCutMode.RandomBeat:
+                currentLiveChangeBeat = PickLiveChangeBeat();
+                liveCutInterval = 60f / Mathf.Max(1, liveBpm) * currentLiveChangeBeat;
+                break;
+            case LiveAutoCutMode.RandomInterval:
+            default:
+                float min = Mathf.Max(0f, minLiveCutInterval);
+                float max = Mathf.Max(min, maxLiveCutInterval);
+                liveCutInterval = UnityEngine.Random.Range(min, max);
+                break;
+        }
+    }
+
+    private int PickLiveChangeBeat()
+    {
+        if (liveChangeBeats == null || liveChangeBeats.Length == 0)
+            return Mathf.Max(1, currentLiveChangeBeat);
+
+        int beat = liveChangeBeats[UnityEngine.Random.Range(0, liveChangeBeats.Length)];
+        return Mathf.Max(1, beat);
+    }
+
+    private void SwitchToLiveCameraIndexInternal(int index)
+    {
+        if (liveCameraShots == null || liveCameraShots.Count == 0)
+            return;
+
+        if (IsLiveTransitioning())
+            return;
+
+        int validIndex = FindNextAvailableLiveShotIndex(index);
+        if (validIndex < 0)
+            return;
+
+        if (validIndex == currentLiveShotIndex)
+            return;
+
+        LiveCameraTransitionType transition = liveTransitionType;
+        if (transition == LiveCameraTransitionType.Random)
+        {
+            transition = UnityEngine.Random.Range(0, 2) == 0
+                ? LiveCameraTransitionType.Cut
+                : LiveCameraTransitionType.CrossFade;
+        }
+
+        if (transition == LiveCameraTransitionType.CrossFade && CanCrossFadeToLiveShot(validIndex))
+        {
+            liveTransitionCoroutine = StartCoroutine(CrossFadeToLiveCameraCoroutine(validIndex));
+            return;
+        }
+
+        CutToLiveCameraIndexInternal(validIndex);
     }
 
     private void CutToLiveCameraIndexInternal(int index)
@@ -304,12 +438,98 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
         LiveCameraShot onAirShot = GetCurrentLiveShot();
         Camera onAirCamera = onAirShot != null ? onAirShot.liveCamera : null;
-        if (onAirCamera != null && programOutputCamera != null)
+        SetLiveCameraEnabledStates(currentLiveShotIndex);
+        if (onAirCamera != null)
         {
             ApplyLiveCameraToProgramOutput(onAirShot);
             UpdateProgramInfoText(onAirShot);
             UpdateLiveCameraStatusTexts(onAirCamera);
         }
+    }
+
+    private bool IsLiveTransitioning()
+    {
+        return liveTransitionCoroutine != null;
+    }
+
+    private bool CanCrossFadeToLiveShot(int index)
+    {
+        if (crossFadeCamera == null || crossFadeImage == null || crossFadeDuration <= 0f)
+            return false;
+
+        LiveCameraShot shot = GetLiveShot(index);
+        return shot != null && shot.liveCamera != null;
+    }
+
+    private IEnumerator CrossFadeToLiveCameraCoroutine(int index)
+    {
+        LiveCameraShot nextShot = GetLiveShot(index);
+        Camera sourceCamera = nextShot != null ? nextShot.liveCamera : null;
+        if (sourceCamera == null || crossFadeCamera == null)
+        {
+            liveTransitionCoroutine = null;
+            yield break;
+        }
+
+        InitializeCrossFadeImage();
+        if (crossFadeRenderTexture == null)
+        {
+            CutToLiveCameraIndexInternal(index);
+            liveTransitionCoroutine = null;
+            yield break;
+        }
+
+        bool wasEnabled = crossFadeCamera.enabled;
+        Rect previousRect = crossFadeCamera.rect;
+        RenderTexture previousTargetTexture = crossFadeCamera.targetTexture;
+        CopyLiveCameraToOutputCamera(nextShot, crossFadeCamera);
+        crossFadeCamera.rect = new Rect(0f, 0f, 1f, 1f);
+        crossFadeCamera.targetTexture = crossFadeRenderTexture;
+        crossFadeCamera.enabled = true;
+
+        crossFadeImage.texture = crossFadeRenderTexture;
+        crossFadeImage.color = new Color(1f, 1f, 1f, 0f);
+        crossFadeImage.gameObject.SetActive(true);
+
+        float startTime = Time.time;
+        while (Time.time - startTime < crossFadeDuration)
+        {
+            CopyLiveCameraToOutputCamera(nextShot, crossFadeCamera);
+            crossFadeCamera.rect = new Rect(0f, 0f, 1f, 1f);
+            crossFadeCamera.targetTexture = crossFadeRenderTexture;
+            crossFadeCamera.enabled = true;
+
+            float alpha = Mathf.Clamp01((Time.time - startTime) / crossFadeDuration);
+            crossFadeImage.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
+        }
+
+        crossFadeCamera.targetTexture = previousTargetTexture;
+        crossFadeCamera.rect = previousRect;
+        crossFadeCamera.enabled = wasEnabled;
+        crossFadeImage.gameObject.SetActive(false);
+        CutToLiveCameraIndexInternal(index);
+        liveTransitionCoroutine = null;
+    }
+
+    private LiveCameraShot GetLiveShot(int index)
+    {
+        if (liveCameraShots == null || index < 0 || index >= liveCameraShots.Count)
+            return null;
+
+        return liveCameraShots[index];
+    }
+
+    private void ApplyCurrentLiveShotNow()
+    {
+        LiveCameraShot onAirShot = GetCurrentLiveShot();
+        Camera onAirCamera = onAirShot != null ? onAirShot.liveCamera : null;
+        if (onAirCamera == null)
+            return;
+
+        ApplyLiveCameraToProgramOutput(onAirShot);
+        UpdateProgramInfoText(onAirShot);
+        UpdateLiveCameraStatusTexts(onAirCamera);
     }
 
     private int ResolveLiveCameraLayer(LiveCameraShot shot)
@@ -348,20 +568,37 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
     private void ApplyLiveCameraToProgramOutput(LiveCameraShot sourceShot)
     {
+        if (liveCameraOutputMode == LiveCameraOutputMode.DirectCameraEnable)
+            return;
+
         if (sourceShot == null || sourceShot.liveCamera == null || programOutputCamera == null)
             return;
 
-        Camera sourceCamera = sourceShot.liveCamera;
+        CopyLiveCameraToOutputCamera(sourceShot, programOutputCamera);
+    }
 
-        programOutputCamera.transform.SetPositionAndRotation(
+    private void CopyLiveCameraToOutputCamera(LiveCameraShot sourceShot, Camera destinationCamera)
+    {
+        if (sourceShot == null || sourceShot.liveCamera == null || destinationCamera == null)
+            return;
+
+        Camera sourceCamera = sourceShot.liveCamera;
+        destinationCamera.transform.SetPositionAndRotation(
             sourceCamera.transform.position,
             sourceCamera.transform.rotation);
 
-        programOutputCamera.fieldOfView = sourceCamera.fieldOfView;
-        programOutputCamera.usePhysicalProperties = sourceCamera.usePhysicalProperties;
-        programOutputCamera.sensorSize = sourceCamera.sensorSize;
-        programOutputCamera.focalLength = sourceCamera.focalLength;
-        programOutputCamera.aperture = sourceCamera.aperture;
+        destinationCamera.fieldOfView = sourceCamera.fieldOfView;
+        destinationCamera.orthographic = sourceCamera.orthographic;
+        destinationCamera.orthographicSize = sourceCamera.orthographicSize;
+        destinationCamera.nearClipPlane = sourceCamera.nearClipPlane;
+        destinationCamera.farClipPlane = sourceCamera.farClipPlane;
+        destinationCamera.clearFlags = sourceCamera.clearFlags;
+        destinationCamera.backgroundColor = sourceCamera.backgroundColor;
+        destinationCamera.cullingMask = sourceCamera.cullingMask;
+        destinationCamera.usePhysicalProperties = sourceCamera.usePhysicalProperties;
+        destinationCamera.sensorSize = sourceCamera.sensorSize;
+        destinationCamera.focalLength = sourceCamera.focalLength;
+        destinationCamera.aperture = sourceCamera.aperture;
 
         int liveCameraLayer = ResolveLiveCameraLayer(sourceShot);
         if (liveCameraLayer < 0)
@@ -369,8 +606,130 @@ public class VLiveCameraSwitcher : MonoBehaviour
             liveCameraLayer = sourceCamera.gameObject.layer;
         }
 
-        programOutputCamera.gameObject.layer = liveCameraLayer;
-        SetLiveVolumeLayerMask(programOutputCamera, liveCameraLayer, sharedVolumeLayerName);
+        destinationCamera.gameObject.layer = liveCameraLayer;
+        SetLiveVolumeLayerMask(destinationCamera, liveCameraLayer, sharedVolumeLayerName);
+    }
+
+    private void SetLiveCameraEnabledStates(int onAirIndex)
+    {
+        if (liveCameraOutputMode != LiveCameraOutputMode.DirectCameraEnable)
+            return;
+
+        if (liveCameraShots == null)
+            return;
+
+        for (int i = 0; i < liveCameraShots.Count; i++)
+        {
+            LiveCameraShot shot = liveCameraShots[i];
+            if (shot == null || shot.liveCamera == null)
+                continue;
+
+            shot.liveCamera.enabled = i == onAirIndex;
+        }
+    }
+
+    private void InitializeProgramOutputImage()
+    {
+        if (programOutputImage == null || programOutputCamera == null)
+            return;
+
+        int textureWidth;
+        int textureHeight;
+        ResolveOutputTextureSize(out textureWidth, out textureHeight);
+
+        if (programOutputRenderTexture == null ||
+            programOutputRenderTextureWidth != textureWidth ||
+            programOutputRenderTextureHeight != textureHeight)
+        {
+            ReleaseProgramOutputRenderTexture();
+            programOutputPreviousTargetTexture = programOutputCamera.targetTexture;
+            programOutputRenderTexture = new RenderTexture(textureWidth, textureHeight, 0);
+            programOutputRenderTextureWidth = textureWidth;
+            programOutputRenderTextureHeight = textureHeight;
+        }
+
+        programOutputCamera.targetTexture = programOutputRenderTexture;
+        programOutputCamera.rect = new Rect(0f, 0f, 1f, 1f);
+        programOutputImage.texture = programOutputRenderTexture;
+        programOutputImage.gameObject.SetActive(true);
+    }
+
+    private void InitializeCrossFadeImage()
+    {
+        if (crossFadeImage == null)
+            return;
+
+        int textureWidth;
+        int textureHeight;
+        ResolveOutputTextureSize(out textureWidth, out textureHeight);
+
+        if (crossFadeRenderTexture == null ||
+            crossFadeRenderTextureWidth != textureWidth ||
+            crossFadeRenderTextureHeight != textureHeight)
+        {
+            ReleaseCrossFadeRenderTexture();
+            crossFadeRenderTexture = new RenderTexture(textureWidth, textureHeight, 0);
+            crossFadeRenderTextureWidth = textureWidth;
+            crossFadeRenderTextureHeight = textureHeight;
+        }
+
+        crossFadeImage.texture = crossFadeRenderTexture;
+        crossFadeImage.gameObject.SetActive(false);
+    }
+
+    private static void ResolveOutputTextureSize(out int width, out int height)
+    {
+        width = Screen.width;
+        height = Screen.height;
+
+        if (width <= 0 || height <= 0)
+        {
+            width = 1920;
+            height = 1080;
+        }
+    }
+
+    private void ReleaseProgramOutputRenderTexture()
+    {
+        if (programOutputRenderTexture == null)
+            return;
+
+        if (programOutputCamera != null && programOutputCamera.targetTexture == programOutputRenderTexture)
+        {
+            programOutputCamera.targetTexture = programOutputPreviousTargetTexture;
+        }
+
+        programOutputRenderTexture.Release();
+        Destroy(programOutputRenderTexture);
+        programOutputRenderTexture = null;
+        programOutputRenderTextureWidth = 0;
+        programOutputRenderTextureHeight = 0;
+    }
+
+    private void ReleaseCrossFadeRenderTexture()
+    {
+        if (crossFadeRenderTexture == null)
+            return;
+
+        crossFadeRenderTexture.Release();
+        Destroy(crossFadeRenderTexture);
+        crossFadeRenderTexture = null;
+        crossFadeRenderTextureWidth = 0;
+        crossFadeRenderTextureHeight = 0;
+    }
+
+    private void OnDisable()
+    {
+        if (crossFadeImage != null)
+        {
+            crossFadeImage.gameObject.SetActive(false);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        ReleaseProgramOutputRenderTexture();
+        ReleaseCrossFadeRenderTexture();
     }
 
     private static void SetLiveVolumeLayerMask(Camera camera, int liveCameraLayer, string sharedLayerName)
@@ -461,8 +820,12 @@ public class VLiveCameraSwitcher : MonoBehaviour
         int liveCameraLayer = ResolveLiveCameraLayer(shot);
         string liveCameraLayerName = liveCameraLayer >= 0 ? LayerMask.LayerToName(liveCameraLayer) : "(layer missing)";
 
-        int sharedLayer = ResolveLiveLayerByName(sharedVolumeLayerName, "sharedVolumeLayerName");
-        string sharedLayerName = sharedLayer >= 0 ? LayerMask.LayerToName(sharedLayer) : "(missing)";
+        string sharedLayerName = "(default)";
+        if (!string.IsNullOrEmpty(sharedVolumeLayerName))
+        {
+            int sharedLayer = ResolveLiveLayerByName(sharedVolumeLayerName, "sharedVolumeLayerName");
+            sharedLayerName = sharedLayer >= 0 ? LayerMask.LayerToName(sharedLayer) : "(missing)";
+        }
 
         programCameraInfoText.text =
             $"{cameraName}  filter: [{liveCameraLayerName} + {sharedLayerName}]\n" +
@@ -514,17 +877,23 @@ public class VLiveCameraSwitcher : MonoBehaviour
         return null;
     }
 
-    public void CutToLiveCameraIndex(int index) => CutToLiveCameraIndexInternal(index);
-    public void CutToLiveCameraNumber(int cameraNumber) => CutToLiveCameraIndexInternal(cameraNumber - 1);
-    public void CutToLiveCam1() => CutToLiveCameraIndexInternal(0);
-    public void CutToLiveCam2() => CutToLiveCameraIndexInternal(1);
-    public void CutToLiveCam3() => CutToLiveCameraIndexInternal(2);
-    public void CutToLiveCam4() => CutToLiveCameraIndexInternal(3);
-    public void CutToLiveCam5() => CutToLiveCameraIndexInternal(4);
-    public void CutToLiveCam6() => CutToLiveCameraIndexInternal(5);
-    public void CutToLiveCam7() => CutToLiveCameraIndexInternal(6);
-    public void CutToLiveCam8() => CutToLiveCameraIndexInternal(7);
-    public void CutToLiveCam9() => CutToLiveCameraIndexInternal(8);
+    [ContextMenu("Set Random Seed From Time")]
+    public void SetRandomSeedFromTime()
+    {
+        UnityEngine.Random.InitState(DateTime.Now.GetHashCode());
+    }
+
+    public void CutToLiveCameraIndex(int index) => SwitchToLiveCameraIndexInternal(index);
+    public void CutToLiveCameraNumber(int cameraNumber) => SwitchToLiveCameraIndexInternal(cameraNumber - 1);
+    public void CutToLiveCam1() => SwitchToLiveCameraIndexInternal(0);
+    public void CutToLiveCam2() => SwitchToLiveCameraIndexInternal(1);
+    public void CutToLiveCam3() => SwitchToLiveCameraIndexInternal(2);
+    public void CutToLiveCam4() => SwitchToLiveCameraIndexInternal(3);
+    public void CutToLiveCam5() => SwitchToLiveCameraIndexInternal(4);
+    public void CutToLiveCam6() => SwitchToLiveCameraIndexInternal(5);
+    public void CutToLiveCam7() => SwitchToLiveCameraIndexInternal(6);
+    public void CutToLiveCam8() => SwitchToLiveCameraIndexInternal(7);
+    public void CutToLiveCam9() => SwitchToLiveCameraIndexInternal(8);
 
     public void SwitchToCameraIndex(int index) => CutToLiveCameraIndex(index);
     public void SwitchToCameraNumber(int cameraNumber) => CutToLiveCameraNumber(cameraNumber);

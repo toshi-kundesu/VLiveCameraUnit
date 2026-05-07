@@ -312,6 +312,8 @@ namespace toshi.VLiveKit.Photography
         private CinemachineFramingTransposer cachedFramingTransposer;
         private VLiveTimeTable cachedTimeTable;
 
+        public VLiveCameraPreset Preset => preset;
+
         private void Awake()
         {
             ResolveStageCameraReference();
@@ -716,6 +718,66 @@ namespace toshi.VLiveKit.Photography
             if (applyImmediately && preset != null)
             {
                 ApplyPreset();
+            }
+#if UNITY_EDITOR
+            else if (!Application.isPlaying)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+#endif
+        }
+
+        public void ConfigureRuntimeReferences(
+            VLiveTimeTable timeTable,
+            VLiveLookTargetRig targetRig,
+            string timelineSectionName = null,
+            bool overwriteExisting = true,
+            bool assignTargetsImmediately = false)
+        {
+            if (timelineSectionName != null)
+            {
+                liveTimelineSectionName = timelineSectionName;
+            }
+
+            if (overwriteExisting || timeTable != null)
+            {
+                cachedTimeTable = timeTable;
+                sharedPlayableDirector = timeTable != null
+                    ? timeTable.GetTimelineOrMaster(liveTimelineSectionName)
+                    : null;
+            }
+
+            if (overwriteExisting || targetRig != null)
+            {
+                sharedLookTargetRig = targetRig;
+                lookTargetRig = targetRig;
+                followTargetRig = targetRig;
+            }
+
+            if (assignTargetsImmediately)
+            {
+                AssignConfiguredTargets();
+            }
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+#endif
+        }
+
+        [ContextMenu("Assign Configured Targets")]
+        public void AssignConfiguredTargets()
+        {
+            if (enableLookTargetModule)
+            {
+                AssignLookTarget();
+            }
+
+            if (enableFollowTargetModule)
+            {
+                AssignFollowTarget();
             }
         }
 

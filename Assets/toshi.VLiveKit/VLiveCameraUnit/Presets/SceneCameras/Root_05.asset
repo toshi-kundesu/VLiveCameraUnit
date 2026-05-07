@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3940c280eca49248b5e65463e856816, type: 3}
   m_Name: Root_05
   m_EditorClassIdentifier: 
-  presetDisplayName: VCamRoot_01
+  presetDisplayName: Root_05
   presetDescription: "\u30E9\u30A4\u30D6\u7528\u30AB\u30E1\u30E9\u306E\u6F14\u51FA\u5024\u30D7\u30EA\u30BB\u30C3\u30C8"
   enableLookTargetModule: 0
   assignLookTargetOnStart: 1
