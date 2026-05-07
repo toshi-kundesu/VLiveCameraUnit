@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3940c280eca49248b5e65463e856816, type: 3}
+  m_Name: vcam45
+  m_EditorClassIdentifier: 
+  presetDisplayName: vcam45
+  presetDescription: "\u30E9\u30A4\u30D6\u7528\u30AB\u30E1\u30E9\u306E\u6F14\u51FA\u5024\u30D7\u30EA\u30BB\u30C3\u30C8"
+  enableLookTargetModule: 1
+  assignLookTargetOnStart: 1
+  lookTargetBone: 0
+  enableFollowTargetModule: 1
+  assignFollowTargetOnStart: 1
+  followTargetBone: 0
+  enableBreathingZoomModule: 0
+  useDirectorTimeForBreathingZoom: 1
+  breathingZoomTimeOffset: 0
+  breathingZoomTimeScalePrimary: 1
+  breathingZoomTimeScaleSecondary: 1
+  breathingZoomFovMin: 25.4
+  breathingZoomFovMax: 45
+  breathingZoomFrequencyHz: 0.1
+  enableRigDriftModule: 1
+  driftSpace: 0
+  syncRigDriftToDirector: 1
+  rigDriftTimeScalePrimary: 1
+  rigDriftTimeScaleSecondary: 1
+  driftAxisWeight: {x: 1, y: 1, z: 1}
+  driftFrequency: {x: 0.15, y: 0.15, z: 0.15}
+  driftAmplitude: {x: 1, y: 1, z: 1}
+  driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftRangeMin: {x: 3.17, y: 0.52, z: -10.88}
+  driftRangeMax: {x: -0.65, y: 0.39, z: -10}
+  rigDriftOffset: {x: -0.9, y: -0.4, z: 14.15}
+  useFigureEightDrift: 1
+  enableAccentZoomModule: 1
+  accentZoomFovMin: 6.46
+  accentZoomFovMax: 94
+  accentZoomBaseFov: 50.6
+  accentZoomAmountMin: -6
+  accentZoomAmountMax: -40.4
+  accentZoomSeed: 20250926
+  accentAttack: 4.75
+  accentAttackSharpness: 4.51
+  accentHoldZoom: 1.83
+  accentReturnDuration: 7.9
+  accentReturnEpsilon: 0.02
+  accentHoldBase: 0.25
+  accentStartOffset: 5
+  freezeAccentZoomWhenDirectorStopped: 0
+  accentZoomTimeScalePrimary: 1
+  accentZoomTimeScaleSecondary: 1
+  accentZoomFilterMode: 1
+  accentLowPassTimeConstant: 0.12
+  accentSpringFrequency: 2
+  accentSpringDampingRatio: 1
+  resetAccentOnLargeJump: 1
+  accentJumpThreshold: 0.5
+  enableDollyBodyOffsetModule: 1
+  dollyBodyOffsetTimeScalePrimary: 1
+  dollyBodyOffsetTimeScaleSecondary: 1
+  dollyBodyOffsetBase: {x: -2, y: -0.15, z: 2.1}
+  dollyBodyOffsetAmplitude: {x: 0.5, y: 0.01, z: 0.1}
+  dollyBodyOffsetFrequency: {x: 0.05, y: 0.35, z: 0.45}
+  dollyBodyOffsetPhaseDeg: {x: -40, y: 90, z: 180}
+  previewDollyOffsetInEditMode: 1

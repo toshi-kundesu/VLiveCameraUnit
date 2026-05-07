@@ -24,6 +24,10 @@ namespace toshi.VLiveKit.Photography
 
         private const float Tau = 2f * Mathf.PI;
 
+#if UNITY_EDITOR
+        private const string DefaultPresetFolderPath = "Assets/toshi.VLiveKit/VLiveCameraUnit/Presets";
+#endif
+
         [Header("▼ Camera Preset")]
         [SerializeField] private VLiveCameraPreset preset;
         [SerializeField] private bool applyPresetOnStart = false;
@@ -511,6 +515,7 @@ namespace toshi.VLiveKit.Photography
             if (parents.Length > 0)
             {
                 VLiveLookTargetRig nearestParent = null;
+
                 for (int i = 0; i < parents.Length; i++)
                 {
                     if (parents[i] != null && parents[i].gameObject != gameObject)
@@ -526,6 +531,7 @@ namespace toshi.VLiveKit.Photography
                     {
                         Debug.LogWarning("[VLiveCamera] 親階層に複数の VLiveLookTargetRig が見つかりました。最も近いものを使用します。", this);
                     }
+
                     return nearestParent;
                 }
             }
@@ -534,6 +540,7 @@ namespace toshi.VLiveKit.Photography
             if (children.Length > 0)
             {
                 VLiveLookTargetRig firstChild = null;
+
                 for (int i = 0; i < children.Length; i++)
                 {
                     if (children[i] != null && children[i].gameObject != gameObject)
@@ -549,6 +556,7 @@ namespace toshi.VLiveKit.Photography
                     {
                         Debug.LogWarning("[VLiveCamera] 子階層に複数の VLiveLookTargetRig が見つかりました。最初のものを使用します。", this);
                     }
+
                     return firstChild;
                 }
             }
@@ -567,6 +575,7 @@ namespace toshi.VLiveKit.Photography
                 return;
 
             string assetName = System.IO.Path.GetFileNameWithoutExtension(path);
+
             if (preset.presetDisplayName != assetName)
             {
                 preset.presetDisplayName = assetName;
@@ -574,6 +583,74 @@ namespace toshi.VLiveKit.Photography
             }
 #endif
         }
+
+#if UNITY_EDITOR
+        [ContextMenu("Create Preset From This Camera")]
+        public void CreatePresetFromThisCamera()
+        {
+            EnsurePresetFolderExists(DefaultPresetFolderPath);
+
+            string baseName = gameObject != null ? gameObject.name : nameof(VLiveCamera);
+            baseName = UnityEditor.ObjectNames.NicifyVariableName(baseName);
+            baseName = SanitizeAssetFileName(baseName);
+
+            string assetPath = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(
+                $"{DefaultPresetFolderPath}/{baseName}.asset"
+            );
+
+            VLiveCameraPreset newPreset = ScriptableObject.CreateInstance<VLiveCameraPreset>();
+
+            string displayName = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            newPreset.presetDisplayName = displayName;
+
+            CaptureCurrentValuesToPreset(newPreset);
+
+            UnityEditor.AssetDatabase.CreateAsset(newPreset, assetPath);
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+
+            preset = newPreset;
+            SyncPresetDisplayNameFromAsset();
+
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.Selection.activeObject = newPreset;
+
+            Debug.Log($"[VLiveCamera] Preset Created → {assetPath}", this);
+        }
+
+        private static void EnsurePresetFolderExists(string folderPath)
+        {
+            if (UnityEditor.AssetDatabase.IsValidFolder(folderPath))
+                return;
+
+            string[] parts = folderPath.Split('/');
+            string current = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = $"{current}/{parts[i]}";
+
+                if (!UnityEditor.AssetDatabase.IsValidFolder(next))
+                {
+                    UnityEditor.AssetDatabase.CreateFolder(current, parts[i]);
+                }
+
+                current = next;
+            }
+        }
+
+        private static string SanitizeAssetFileName(string fileName)
+        {
+            foreach (char invalidChar in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(invalidChar, '_');
+            }
+
+            fileName = fileName.Trim();
+
+            return string.IsNullOrEmpty(fileName) ? nameof(VLiveCamera) : fileName;
+        }
+#endif
 
         [ContextMenu("Apply Preset")]
         public void ApplyPreset()
