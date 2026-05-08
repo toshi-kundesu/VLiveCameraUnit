@@ -23,6 +23,11 @@ namespace toshi.VLiveKit.Photography
             public string cameraName = "cam01";
             public VLiveCameraPreset preset;
             public VLiveCamera cameraMan;
+            public bool usePresetTagFilter = false;
+            public VLiveCameraPreset.ShotScaleTag shotScaleFilter = VLiveCameraPreset.ShotScaleTag.None;
+            public VLiveCameraPreset.StageSideTag stageSideFilter = VLiveCameraPreset.StageSideTag.None;
+            public VLiveCameraPreset.CameraRigTag cameraRigFilter = VLiveCameraPreset.CameraRigTag.None;
+            public string customTagFilter;
         }
 
         private const string DefaultPresetFolderPath =
@@ -255,7 +260,7 @@ namespace toshi.VLiveKit.Photography
                 if (slot == null)
                     continue;
 
-                slot.preset = PickRandomPreset(slot.preset);
+                slot.preset = PickRandomPreset(slot.preset, slot);
             }
 
             ApplyCameraPresetSlots();
@@ -437,23 +442,61 @@ namespace toshi.VLiveKit.Photography
             return null;
         }
 
-        private VLiveCameraPreset PickRandomPreset(VLiveCameraPreset currentPreset)
+        private VLiveCameraPreset PickRandomPreset(VLiveCameraPreset currentPreset, CameraPresetSlot slot)
         {
             if (presets.Count == 0)
                 return null;
 
-            if (presets.Count == 1)
-                return presets[0];
+            List<VLiveCameraPreset> candidates = GetPresetCandidates(slot);
+
+            if (candidates.Count == 0)
+            {
+                Debug.LogWarning(
+                    $"[VLiveCameraPresetSpawner] No presets match the tag filter for '{slot?.cameraName}'. Falling back to all presets.",
+                    this);
+                candidates = presets;
+            }
+
+            if (candidates.Count == 1)
+                return candidates[0];
 
             VLiveCameraPreset preset = currentPreset;
             int guard = 0;
             while (preset == currentPreset && guard < 16)
             {
-                preset = presets[Random.Range(0, presets.Count)];
+                preset = candidates[Random.Range(0, candidates.Count)];
                 guard++;
             }
 
-            return preset != null ? preset : presets[Random.Range(0, presets.Count)];
+            return preset != null ? preset : candidates[Random.Range(0, candidates.Count)];
+        }
+
+        private List<VLiveCameraPreset> GetPresetCandidates(CameraPresetSlot slot)
+        {
+            List<VLiveCameraPreset> candidates = new List<VLiveCameraPreset>();
+            for (int i = 0; i < presets.Count; i++)
+            {
+                VLiveCameraPreset preset = presets[i];
+                if (preset == null)
+                    continue;
+
+                if (slot == null || !slot.usePresetTagFilter)
+                {
+                    candidates.Add(preset);
+                    continue;
+                }
+
+                if (preset.MatchesTags(
+                    slot.shotScaleFilter,
+                    slot.stageSideFilter,
+                    slot.cameraRigFilter,
+                    slot.customTagFilter))
+                {
+                    candidates.Add(preset);
+                }
+            }
+
+            return candidates;
         }
 
         private VLiveCamera FindGeneratedCameraByName(string cameraName)

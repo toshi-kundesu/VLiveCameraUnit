@@ -178,6 +178,11 @@ public class VLiveCameraPresetSpawnerEditor : Editor
                 SerializedProperty cameraNameProperty = slotProperty.FindPropertyRelative("cameraName");
                 SerializedProperty presetProperty = slotProperty.FindPropertyRelative("preset");
                 SerializedProperty cameraManProperty = slotProperty.FindPropertyRelative("cameraMan");
+                SerializedProperty usePresetTagFilterProperty = slotProperty.FindPropertyRelative("usePresetTagFilter");
+                SerializedProperty shotScaleFilterProperty = slotProperty.FindPropertyRelative("shotScaleFilter");
+                SerializedProperty stageSideFilterProperty = slotProperty.FindPropertyRelative("stageSideFilter");
+                SerializedProperty cameraRigFilterProperty = slotProperty.FindPropertyRelative("cameraRigFilter");
+                SerializedProperty customTagFilterProperty = slotProperty.FindPropertyRelative("customTagFilter");
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -204,6 +209,24 @@ public class VLiveCameraPresetSpawnerEditor : Editor
                         PingObject(cameraManProperty.objectReferenceValue ?? presetProperty.objectReferenceValue);
                     }
                 }
+
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(
+                    usePresetTagFilterProperty,
+                    new GUIContent("Use Tag Filter"));
+
+                if (usePresetTagFilterProperty.boolValue)
+                {
+                    using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
+                        EditorGUILayout.PropertyField(shotScaleFilterProperty, new GUIContent("Shot Scale"));
+                        EditorGUILayout.PropertyField(stageSideFilterProperty, new GUIContent("Stage Side"));
+                        EditorGUILayout.PropertyField(cameraRigFilterProperty, new GUIContent("Camera Type"));
+                        EditorGUILayout.PropertyField(customTagFilterProperty, new GUIContent("Custom Tag"));
+                    }
+                }
+
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -369,7 +392,7 @@ public class VLiveCameraPresetSpawnerEditor : Editor
         for (int i = 0; i < spawner.Presets.Count; i++)
         {
             VLiveCameraPreset preset = spawner.Presets[i];
-            names.Add(preset != null ? preset.name : "(Missing)");
+            names.Add(preset != null ? $"{preset.name} [{preset.GetTagSummary()}]" : "(Missing)");
         }
 
         return names.ToArray();
