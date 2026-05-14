@@ -7,6 +7,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Live-program camera switcher for VLiveCamera test scenes.
+/// It maps operator inputs to camera shots, drives optional auto-cut timing, and updates monitor UI.
+/// </summary>
 public class VLiveCameraSwitcher : MonoBehaviour
 {
     public enum LiveCameraInputMode
@@ -168,6 +172,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
 
         if (!IsLiveTransitioning() && HandleLiveCameraInput())
         {
+            // Manual cuts reset the auto-cut timer so the operator's choice stays on air for a full interval.
             liveCutTimer = 0f;
             ScheduleNextLiveCut();
         }

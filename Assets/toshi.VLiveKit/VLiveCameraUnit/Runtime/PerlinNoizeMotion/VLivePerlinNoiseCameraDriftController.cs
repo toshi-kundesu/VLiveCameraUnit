@@ -4,10 +4,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 [DefaultExecutionOrder(100)]
 public sealed class VLivePerlinNoiseCameraDriftController : MonoBehaviour
 {

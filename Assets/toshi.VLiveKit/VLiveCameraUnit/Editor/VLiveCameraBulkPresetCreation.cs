@@ -1,27 +1,19 @@
-using System.IO;
 using System.Collections.Generic;
-using UnityEngine;
-
-#if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.SceneManagement;
-#endif
+using toshi.VLiveKit.Photography;
 
-namespace toshi.VLiveKit.Photography
+namespace toshi.VLiveKit.Photography.Editor
 {
-    public partial class VLiveCamera
+    public static class VLiveCameraBulkPresetCreation
     {
-#if UNITY_EDITOR
         private const string DefaultBulkPresetFolderPath =
             "Assets/toshi.VLiveKit/VLiveCameraUnit/Presets/SceneCameras";
 
         [MenuItem("toshi/VLiveKit/Camera/Create Presets For All VLiveCameras In Scene")]
         public static void CreatePresetsForAllSceneCamerasMenu()
-        {
-            CreatePresetsForAllSceneCameras(DefaultBulkPresetFolderPath);
-        }
-
-        public static void CreatePresetsForAllSceneCameras()
         {
             CreatePresetsForAllSceneCameras(DefaultBulkPresetFolderPath);
         }
@@ -34,7 +26,7 @@ namespace toshi.VLiveKit.Photography
 
             if (cameras == null || cameras.Length == 0)
             {
-                Debug.LogWarning("[VLiveCamera] シーン内に VLiveCamera が見つかりません。");
+                Debug.Log("[VLiveCamera] No VLiveCamera components were found in loaded scenes.");
                 return;
             }
 
@@ -54,21 +46,17 @@ namespace toshi.VLiveKit.Photography
                     ? camera.gameObject.name
                     : nameof(VLiveCamera);
 
-                baseName = SanitizeAssetFileName(baseName);
+                baseName = SanitizeAssetFileName(ObjectNames.NicifyVariableName(baseName));
 
                 string assetPath = AssetDatabase.GenerateUniqueAssetPath(
-                    $"{folderPath}/{baseName}.asset"
-                );
+                    $"{folderPath}/{baseName}.asset");
 
                 VLiveCameraPreset newPreset = ScriptableObject.CreateInstance<VLiveCameraPreset>();
                 newPreset.presetDisplayName = Path.GetFileNameWithoutExtension(assetPath);
 
-                camera.CaptureCurrentValuesToPreset(newPreset);
-
                 AssetDatabase.CreateAsset(newPreset, assetPath);
-
-                camera.preset = newPreset;
-                camera.SyncPresetDisplayNameFromAsset();
+                camera.SetPreset(newPreset, false);
+                camera.CaptureToPreset();
 
                 EditorUtility.SetDirty(camera);
                 EditorUtility.SetDirty(newPreset);
@@ -81,7 +69,7 @@ namespace toshi.VLiveKit.Photography
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"[VLiveCamera] Scene Presets Created And Captured → {createdCount} cameras / {folderPath}");
+            Debug.Log($"[VLiveCamera] Scene presets created and captured: {createdCount} cameras / {folderPath}");
         }
 
         private static VLiveCamera[] FindAllSceneVLiveCameras()
@@ -120,6 +108,27 @@ namespace toshi.VLiveKit.Photography
             return result.ToArray();
         }
 
+        private static void EnsurePresetFolderExists(string folderPath)
+        {
+            if (AssetDatabase.IsValidFolder(folderPath))
+                return;
+
+            string[] parts = folderPath.Split('/');
+            string current = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = $"{current}/{parts[i]}";
+
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(current, parts[i]);
+                }
+
+                current = next;
+            }
+        }
+
         private static string GetHierarchyPath(Transform transform)
         {
             if (transform == null)
@@ -136,6 +145,17 @@ namespace toshi.VLiveKit.Photography
 
             return path;
         }
-#endif
+
+        private static string SanitizeAssetFileName(string fileName)
+        {
+            foreach (char invalidChar in Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(invalidChar, '_');
+            }
+
+            fileName = fileName.Trim();
+
+            return string.IsNullOrEmpty(fileName) ? nameof(VLiveCamera) : fileName;
+        }
     }
 }

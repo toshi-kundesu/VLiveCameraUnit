@@ -45,7 +45,7 @@ namespace toshi.VLiveKit.Photography.Editor
 
             if (GUILayout.Button("Create Presets For All VLiveCameras In Scene", GUILayout.Height(30f)))
             {
-                VLiveCamera.CreatePresetsForAllSceneCameras();
+                VLiveCameraBulkPresetCreation.CreatePresetsForAllSceneCamerasMenu();
 
                 serializedObject.Update();
             }
