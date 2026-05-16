@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ public class VLiveLookTargetRigEditor : Editor
     private SerializedProperty _lookTargetRootProp;
     private SerializedProperty _performerNameProp;
     private SerializedProperty _syncActiveStateEveryFrameProp;
+    private SerializedProperty _activeSourcesOnlyProp;
+    private SerializedProperty _additionalPerformerSourcesProp;
     private SerializedProperty _lookTargetChannelsProp;
 
     private bool _showChannelList = true;
@@ -33,6 +36,8 @@ public class VLiveLookTargetRigEditor : Editor
         _lookTargetRootProp = serializedObject.FindProperty("lookTargetRoot");
         _performerNameProp = serializedObject.FindProperty("performerName");
         _syncActiveStateEveryFrameProp = serializedObject.FindProperty("syncActiveStateEveryFrame");
+        _activeSourcesOnlyProp = serializedObject.FindProperty("activeSourcesOnly");
+        _additionalPerformerSourcesProp = serializedObject.FindProperty("additionalPerformerSources");
         _lookTargetChannelsProp = serializedObject.FindProperty("lookTargetChannels");
     }
 
@@ -99,6 +104,30 @@ public class VLiveLookTargetRigEditor : Editor
         EditorGUILayout.PropertyField(_lookTargetRootProp, new GUIContent("Look Target Root"));
         EditorGUILayout.PropertyField(_performerNameProp, new GUIContent("Performer Name"));
         EditorGUILayout.PropertyField(_syncActiveStateEveryFrameProp, new GUIContent("Sync Active State Every Frame"));
+
+        EditorGUILayout.Space(4);
+
+        EditorGUILayout.LabelField("Multi Performer Targets", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(_activeSourcesOnlyProp, new GUIContent("Active Sources Only"));
+        EditorGUILayout.PropertyField(_additionalPerformerSourcesProp, new GUIContent("Additional Performer Sources"), true);
+
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            if (GUILayout.Button("Add Selected Performers", GUILayout.Height(24)))
+            {
+                AddSelectedPerformerSources();
+            }
+
+            GUI.enabled = _additionalPerformerSourcesProp.arraySize > 0;
+            if (GUILayout.Button("Clear Additional", GUILayout.Width(120), GUILayout.Height(24)))
+            {
+                Undo.RecordObject(target, "Clear Additional Performer Sources");
+                _additionalPerformerSourcesProp.ClearArray();
+                EditorUtility.SetDirty(target);
+            }
+            GUI.enabled = true;
+        }
+
         EditorGUILayout.EndVertical();
     }
 
@@ -145,6 +174,7 @@ public class VLiveLookTargetRigEditor : Editor
         EditorGUILayout.Space(4);
 
         DrawStatusLamp("Performer Live", rig.IsPerformerLive);
+        EditorGUILayout.LabelField("Performer Sources", $"{rig.ActivePerformerSourceCount}/{rig.PerformerSourceCount} active");
         DrawStatusLamp("Targets Ready", rig.LookTargetChannels != null && rig.LookTargetChannels.Count > 0);
 
         EditorGUILayout.EndVertical();
@@ -194,11 +224,13 @@ public class VLiveLookTargetRigEditor : Editor
                 var targetBoneProp = element.FindPropertyRelative("targetBone");
                 var performerBoneProp = element.FindPropertyRelative("performerBone");
                 var lookTargetObjectProp = element.FindPropertyRelative("lookTargetObject");
+                var sourceCountProp = element.FindPropertyRelative("sourceCount");
 
                 EditorGUILayout.BeginVertical("helpbox");
                 EditorGUILayout.PropertyField(targetBoneProp, new GUIContent("Target Bone"));
                 EditorGUILayout.PropertyField(performerBoneProp, new GUIContent("Performer Bone"));
                 EditorGUILayout.PropertyField(lookTargetObjectProp, new GUIContent("Look Target"));
+                EditorGUILayout.PropertyField(sourceCountProp, new GUIContent("Source Count"));
                 EditorGUILayout.EndVertical();
             }
 
@@ -206,6 +238,177 @@ public class VLiveLookTargetRigEditor : Editor
         }
 
         EditorGUILayout.EndVertical();
+    }
+
+    private void AddSelectedPerformerSources()
+    {
+        GameObject[] selectedObjects = Selection.gameObjects;
+        if (selectedObjects == null || selectedObjects.Length == 0)
+            return;
+
+        Undo.RecordObject(target, "Add Selected Performer Sources");
+
+        var existingAnimators = CollectExistingAnimators();
+        bool canFillPrimary =
+            _vLivePerformerProp.objectReferenceValue == null &&
+            _performerAnimatorProp.objectReferenceValue == null;
+        int added = 0;
+
+        for (int i = 0; i < selectedObjects.Length; i++)
+        {
+            if (!TryResolveSelectedSource(selectedObjects[i], out var performer, out var animator))
+                continue;
+
+            if (animator == null || existingAnimators.Contains(animator))
+                continue;
+
+            if (canFillPrimary)
+            {
+                _vLivePerformerProp.objectReferenceValue = performer;
+                _performerAnimatorProp.objectReferenceValue = animator;
+                if (string.IsNullOrWhiteSpace(_performerNameProp.stringValue) || _performerNameProp.stringValue == "Performer")
+                {
+                    _performerNameProp.stringValue = ResolveSourceName(performer, animator);
+                }
+
+                existingAnimators.Add(animator);
+                canFillPrimary = false;
+                added++;
+                continue;
+            }
+
+            AddAdditionalPerformerSource(performer, animator);
+            existingAnimators.Add(animator);
+            added++;
+        }
+
+        if (added > 0)
+        {
+            EditorUtility.SetDirty(target);
+        }
+    }
+
+    private HashSet<Animator> CollectExistingAnimators()
+    {
+        var animators = new HashSet<Animator>();
+
+        if (_performerAnimatorProp.objectReferenceValue is Animator primaryAnimator)
+        {
+            animators.Add(primaryAnimator);
+        }
+
+        if (_vLivePerformerProp.objectReferenceValue is VLivePerformer primaryPerformer)
+        {
+            Animator animator = primaryPerformer.PerformerAnimator;
+            if (animator == null)
+            {
+                animator = primaryPerformer.GetComponentInChildren<Animator>(true);
+            }
+
+            if (animator != null)
+            {
+                animators.Add(animator);
+            }
+        }
+
+        for (int i = 0; i < _additionalPerformerSourcesProp.arraySize; i++)
+        {
+            var element = _additionalPerformerSourcesProp.GetArrayElementAtIndex(i);
+            var animatorProp = element.FindPropertyRelative("performerAnimator");
+            var performerProp = element.FindPropertyRelative("vLivePerformer");
+
+            if (animatorProp.objectReferenceValue is Animator animator)
+            {
+                animators.Add(animator);
+                continue;
+            }
+
+            if (performerProp.objectReferenceValue is VLivePerformer performer)
+            {
+                Animator performerAnimator = performer.PerformerAnimator;
+                if (performerAnimator == null)
+                {
+                    performerAnimator = performer.GetComponentInChildren<Animator>(true);
+                }
+
+                if (performerAnimator != null)
+                {
+                    animators.Add(performerAnimator);
+                }
+            }
+        }
+
+        return animators;
+    }
+
+    private static bool TryResolveSelectedSource(GameObject selectedObject, out VLivePerformer performer, out Animator animator)
+    {
+        performer = null;
+        animator = null;
+
+        if (selectedObject == null)
+            return false;
+
+        performer = selectedObject.GetComponent<VLivePerformer>();
+        if (performer == null)
+        {
+            performer = selectedObject.GetComponentInParent<VLivePerformer>();
+        }
+
+        if (performer == null)
+        {
+            performer = selectedObject.GetComponentInChildren<VLivePerformer>(true);
+        }
+
+        if (performer != null)
+        {
+            animator = performer.PerformerAnimator;
+            if (animator == null)
+            {
+                animator = performer.GetComponentInChildren<Animator>(true);
+            }
+        }
+
+        if (animator == null)
+        {
+            animator = selectedObject.GetComponent<Animator>();
+        }
+
+        if (animator == null)
+        {
+            animator = selectedObject.GetComponentInParent<Animator>();
+        }
+
+        if (animator == null)
+        {
+            animator = selectedObject.GetComponentInChildren<Animator>(true);
+        }
+
+        return animator != null;
+    }
+
+    private void AddAdditionalPerformerSource(VLivePerformer performer, Animator animator)
+    {
+        int index = _additionalPerformerSourcesProp.arraySize;
+        _additionalPerformerSourcesProp.InsertArrayElementAtIndex(index);
+
+        var element = _additionalPerformerSourcesProp.GetArrayElementAtIndex(index);
+        element.FindPropertyRelative("sourceEnabled").boolValue = true;
+        element.FindPropertyRelative("vLivePerformer").objectReferenceValue = performer;
+        element.FindPropertyRelative("performerAnimator").objectReferenceValue = animator;
+        element.FindPropertyRelative("fallbackHumanoidAvatar").objectReferenceValue = null;
+        element.FindPropertyRelative("performerName").stringValue = ResolveSourceName(performer, animator);
+    }
+
+    private static string ResolveSourceName(VLivePerformer performer, Animator animator)
+    {
+        if (performer != null)
+            return performer.PerformerName;
+
+        if (animator != null)
+            return animator.gameObject.name;
+
+        return "Performer";
     }
 
     private void DrawStatusLamp(string label, bool active)

@@ -38,6 +38,12 @@ VLiveKit sandbox では submodule として `Packages/VLiveKit_camera` に配置
 
 - ライブ運用で調整しながら使う前提のため、preset や rig の構成はプロジェクト側で上書きできます。
 
+## Multi Performer Look Targets
+
+- `VLiveLookTargetRig` can add multiple performer sources from the current scene selection with `Add Selected Performers`.
+- `Build Targets` creates one look target per humanoid bone and blends the selected performers with a `PositionConstraint`.
+- When `Active Sources Only` is enabled, inactive performers are given zero constraint weight. If two performers are selected and one is disabled, cameras aim only at the active performer.
+
 ## License
 
 この package 独自のコードと asset は repository の `LICENSE` に従います。third-party asset を含む場合は、それぞれの license / README を確認してください。
