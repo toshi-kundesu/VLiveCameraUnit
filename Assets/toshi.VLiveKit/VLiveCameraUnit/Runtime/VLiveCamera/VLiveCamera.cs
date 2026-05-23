@@ -22,6 +22,12 @@ namespace toshi.VLiveKit.Photography
             DampedSpring
         }
 
+        public enum CameraMotionSignalMode
+        {
+            Sin,
+            PerlinNoise
+        }
+
         public enum TargetReferenceMode
         {
             HumanoidBone,
@@ -29,6 +35,7 @@ namespace toshi.VLiveKit.Photography
         }
 
         private const float Tau = 2f * Mathf.PI;
+        private static readonly Vector3 DefaultLookTargetPosition = new Vector3(0f, 1.5f, 0f);
 
 #if UNITY_EDITOR
         private const string DefaultPresetFolderPath = "Assets/toshi.VLiveKit/VLiveCameraUnit/Presets";
@@ -68,6 +75,8 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("aimTargetGO")]
         [SerializeField] private GameObject lookTargetMarker;
 
+        [SerializeField, HideInInspector] private Transform fallbackLookTargetTransform;
+
         [Header("▼ Follow Target Module")]
         [FormerlySerializedAs("enableTrackingModule")]
         [SerializeField] private bool enableFollowTargetModule = false;
@@ -88,6 +97,44 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("trackingTargetGO")]
         [SerializeField] private GameObject followTargetMarker;
 
+        [Header("Screen Position Module")]
+        [SerializeField] private bool enableScreenPositionModule = false;
+        [SerializeField] private PlayableDirector screenPositionDirector;
+        [SerializeField] private bool useDirectorTimeForScreenPosition = true;
+        [SerializeField] private bool useScreenPositionSinWobble = true;
+        [SerializeField] private bool useScreenPositionPerlinWobble = false;
+        [SerializeField] private CameraMotionSignalMode screenPositionMotionMode = CameraMotionSignalMode.Sin;
+        [SerializeField] private float screenPositionTimeOffset = 0f;
+        [SerializeField] private float screenPositionTimeScalePrimary = 1f;
+        [SerializeField] private float screenPositionTimeScaleSecondary = 1f;
+        [SerializeField] private float screenPositionIntensityScalePrimary = 1f;
+        [SerializeField] private float screenPositionIntensityScaleSecondary = 1f;
+        [SerializeField] private Vector2 screenPositionBase = new Vector2(0.5f, 0.5f);
+        [SerializeField] private Vector2 screenPositionAmplitude = new Vector2(0.05f, 0.05f);
+        [SerializeField] private Vector2 screenPositionFrequency = new Vector2(0.25f, 0.35f);
+        [SerializeField] private Vector2 screenPositionPhaseDeg = new Vector2(0f, 90f);
+        [SerializeField] private Vector2 screenPositionPerlinOffset = new Vector2(0f, 17f);
+        [SerializeField] private bool previewScreenPositionInEditMode = true;
+
+        [Header("Dutch Roll Module")]
+        [SerializeField] private bool enableDutchRollModule = false;
+        [SerializeField] private PlayableDirector dutchRollDirector;
+        [SerializeField] private bool useDirectorTimeForDutchRoll = true;
+        [SerializeField] private CameraMotionSignalMode dutchRollMotionMode = CameraMotionSignalMode.Sin;
+        [SerializeField] private float dutchRollTimeOffset = 0f;
+        [SerializeField] private float dutchRollTimeScalePrimary = 1f;
+        [SerializeField] private float dutchRollTimeScaleSecondary = 1f;
+        [SerializeField] private float dutchRollIntensityScalePrimary = 1f;
+        [SerializeField] private float dutchRollIntensityScaleSecondary = 1f;
+        [SerializeField] private float dutchRollBaseDegrees = 0f;
+        [Min(0f)]
+        [SerializeField] private float dutchRollAmplitudeDegrees = 5f;
+        [Min(0f)]
+        [SerializeField] private float dutchRollFrequency = 0.25f;
+        [SerializeField] private float dutchRollPhaseDeg = 0f;
+        [SerializeField] private float dutchRollPerlinOffset = 0f;
+        [SerializeField] private bool previewDutchRollInEditMode = true;
+
         [Header("▼ Breathing Zoom Module")]
         [FormerlySerializedAs("enableZoomSineModule")]
         [SerializeField] private bool enableBreathingZoomModule = false;
@@ -100,6 +147,8 @@ namespace toshi.VLiveKit.Photography
 
         [FormerlySerializedAs("zoomCueTimeOffset")]
         [SerializeField] private float breathingZoomTimeOffset = 0f;
+
+        [SerializeField] private CameraMotionSignalMode breathingZoomMotionMode = CameraMotionSignalMode.Sin;
 
         [FormerlySerializedAs("zoomTimeScalePrimary")]
         [SerializeField] private float breathingZoomTimeScalePrimary = 1f;
@@ -117,6 +166,8 @@ namespace toshi.VLiveKit.Photography
 
         [FormerlySerializedAs("zoomFrequencyHz")]
         [SerializeField] private float breathingZoomFrequencyHz = 1f;
+
+        [SerializeField] private float breathingZoomPerlinOffset = 0f;
 
         [Header("▼ Camera Rig Drift Module")]
         [FormerlySerializedAs("enableRigSwayModule")]
@@ -140,6 +191,8 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("rigSwayTimeScaleSecondary")]
         [SerializeField] private float rigDriftTimeScaleSecondary = 1f;
 
+        [SerializeField] private CameraMotionSignalMode rigDriftMotionMode = CameraMotionSignalMode.Sin;
+
         [FormerlySerializedAs("swayAxisWeight")]
         [SerializeField] private Vector3 driftAxisWeight = Vector3.one;
 
@@ -151,6 +204,8 @@ namespace toshi.VLiveKit.Photography
 
         [FormerlySerializedAs("swayPhaseOffset")]
         [SerializeField] private Vector3 driftPhaseOffset = Vector3.zero;
+
+        [SerializeField] private Vector3 driftPerlinOffset = new Vector3(0f, 17f, 31f);
 
         [FormerlySerializedAs("swayRangeMin")]
         [SerializeField] private Vector3 driftRangeMin = new Vector3(-1f, -1f, -1f);
@@ -292,6 +347,10 @@ namespace toshi.VLiveKit.Photography
         [FormerlySerializedAs("bodyOffsetPhaseDeg")]
         [SerializeField] private Vector3 dollyBodyOffsetPhaseDeg = new Vector3(0f, 90f, 180f);
 
+        [SerializeField] private CameraMotionSignalMode dollyBodyOffsetMotionMode = CameraMotionSignalMode.Sin;
+
+        [SerializeField] private Vector3 dollyBodyOffsetPerlinOffset = new Vector3(0f, 17f, 31f);
+
         [FormerlySerializedAs("previewBodyOffsetInEditMode")]
         [SerializeField] private bool previewDollyOffsetInEditMode = true;
 
@@ -305,12 +364,35 @@ namespace toshi.VLiveKit.Photography
         [Header("▼ Debug")]
         [FormerlySerializedAs("zoomEvalTimeDebug")]
         [SerializeField] private float breathingZoomEvaluatedTimeDebug;
+        [SerializeField] private float screenPositionEvaluatedTimeDebug;
+        [SerializeField] private Vector2 screenPositionOutputDebug;
+        [SerializeField] private float dutchRollEvaluatedTimeDebug;
+        [SerializeField] private float dutchRollOutputDegreesDebug;
 #endif
 
         private Transform resolvedDriftRigTarget;
         private CinemachineTransposer cachedBodyTransposer;
+        private CinemachineComposer cachedComposer;
         private CinemachineFramingTransposer cachedFramingTransposer;
         private VLiveTimeTable cachedTimeTable;
+        private bool previousEnableLookTargetModule;
+        private bool previousEnableFollowTargetModule;
+        private bool previousEnableScreenPositionModule;
+        private bool previousEnableDutchRollModule;
+        private bool previousEnableBreathingZoomModule;
+        private bool previousEnableRigDriftModule;
+        private bool previousEnableAccentZoomModule;
+        private bool previousEnableDollyBodyOffsetModule;
+        private bool lookTargetBeforeModuleCaptured;
+        private bool followTargetBeforeModuleCaptured;
+        private Transform lookTargetBeforeModule;
+        private Transform followTargetBeforeModule;
+        private bool fovBeforeModulesCaptured;
+        private float fovBeforeModules;
+        private bool rigDriftPoseBeforeModuleCaptured;
+        private Vector3 rigDriftPositionBeforeModule;
+        private Vector3 rigDriftLocalPositionBeforeModule;
+        private CameraRigSpace rigDriftSpaceBeforeModule;
 
         public VLiveCameraPreset Preset => preset;
 
@@ -342,12 +424,12 @@ namespace toshi.VLiveKit.Photography
 
             if (enableLookTargetModule && assignLookTargetOnStart)
             {
-                AssignLookTarget();
+                ActivateLookTargetModule();
             }
 
             if (enableFollowTargetModule && assignFollowTargetOnStart)
             {
-                AssignFollowTarget();
+                ActivateFollowTargetModule();
             }
 
             ResolveRigDriftTarget();
@@ -359,10 +441,21 @@ namespace toshi.VLiveKit.Photography
 
             if (!dollyBodyOffsetInitialized)
                 InitializeDollyBodyOffsetBase();
+
+            PrepareRuntimeModulesForCurrentState();
+            SyncRuntimeModuleStateSnapshot();
         }
 
         private void Update()
         {
+            HandleRuntimeModuleSwitches();
+
+            if (enableScreenPositionModule)
+                DriveScreenPosition();
+
+            if (enableDutchRollModule)
+                DriveDutchRoll();
+
             if (enableBreathingZoomModule)
                 DriveBreathingZoom();
 
@@ -374,6 +467,111 @@ namespace toshi.VLiveKit.Photography
 
             if (enableDollyBodyOffsetModule)
                 DriveDollyBodyOffset();
+        }
+
+        private void HandleRuntimeModuleSwitches()
+        {
+            if (enableLookTargetModule != previousEnableLookTargetModule)
+            {
+                if (enableLookTargetModule)
+                    ActivateLookTargetModule();
+                else
+                    DeactivateLookTargetModule();
+            }
+
+            if (enableFollowTargetModule != previousEnableFollowTargetModule)
+            {
+                if (enableFollowTargetModule)
+                    ActivateFollowTargetModule();
+                else
+                    DeactivateFollowTargetModule();
+            }
+
+            if (enableScreenPositionModule != previousEnableScreenPositionModule)
+            {
+                if (enableScreenPositionModule)
+                    DriveScreenPosition();
+                else
+                    RestoreScreenPositionBase();
+            }
+
+            if (enableDutchRollModule != previousEnableDutchRollModule)
+            {
+                if (enableDutchRollModule)
+                    DriveDutchRoll();
+                else
+                    RestoreDutchRollBase();
+            }
+
+            bool previousFovModulesEnabled = previousEnableBreathingZoomModule || previousEnableAccentZoomModule;
+            bool fovModulesEnabled = enableBreathingZoomModule || enableAccentZoomModule;
+            if (!previousFovModulesEnabled && fovModulesEnabled)
+            {
+                CaptureFovBeforeModules();
+            }
+            else if (previousFovModulesEnabled && !fovModulesEnabled)
+            {
+                RestoreFovBeforeModules();
+            }
+
+            if (enableBreathingZoomModule != previousEnableBreathingZoomModule && enableBreathingZoomModule)
+            {
+                DriveBreathingZoom();
+            }
+
+            if (enableRigDriftModule != previousEnableRigDriftModule)
+            {
+                if (enableRigDriftModule)
+                    CaptureRigDriftPoseBeforeModule();
+                else
+                    RestoreRigDriftPoseBeforeModule();
+            }
+
+            if (enableAccentZoomModule != previousEnableAccentZoomModule)
+            {
+                if (enableAccentZoomModule)
+                    ResetAccentZoomRuntimeState();
+            }
+
+            if (enableDollyBodyOffsetModule != previousEnableDollyBodyOffsetModule)
+            {
+                if (enableDollyBodyOffsetModule)
+                    ActivateDollyBodyOffsetModule();
+                else
+                    RestoreInitialDollyOffsetRuntime();
+            }
+
+            SyncRuntimeModuleStateSnapshot();
+        }
+
+        private void PrepareRuntimeModulesForCurrentState()
+        {
+            if (enableLookTargetModule)
+                CaptureLookTargetBeforeModule();
+
+            if (enableFollowTargetModule)
+                CaptureFollowTargetBeforeModule();
+
+            if (enableBreathingZoomModule || enableAccentZoomModule)
+                CaptureFovBeforeModules();
+
+            if (enableRigDriftModule)
+                CaptureRigDriftPoseBeforeModule();
+
+            if (enableDollyBodyOffsetModule)
+                ActivateDollyBodyOffsetModule();
+        }
+
+        private void SyncRuntimeModuleStateSnapshot()
+        {
+            previousEnableLookTargetModule = enableLookTargetModule;
+            previousEnableFollowTargetModule = enableFollowTargetModule;
+            previousEnableScreenPositionModule = enableScreenPositionModule;
+            previousEnableDutchRollModule = enableDutchRollModule;
+            previousEnableBreathingZoomModule = enableBreathingZoomModule;
+            previousEnableRigDriftModule = enableRigDriftModule;
+            previousEnableAccentZoomModule = enableAccentZoomModule;
+            previousEnableDollyBodyOffsetModule = enableDollyBodyOffsetModule;
         }
 
         private void OnValidate()
@@ -424,6 +622,7 @@ namespace toshi.VLiveKit.Photography
                 return;
 
             cachedBodyTransposer = stageVirtualCamera.GetCinemachineComponent<CinemachineTransposer>();
+            cachedComposer = stageVirtualCamera.GetCinemachineComponent<CinemachineComposer>();
             cachedFramingTransposer = stageVirtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
         }
 
@@ -577,7 +776,7 @@ namespace toshi.VLiveKit.Photography
                 }
             }
 
-            return FindObjectOfType<VLiveLookTargetRig>(true);
+            return FindAnyObjectByType<VLiveLookTargetRig>(FindObjectsInactive.Include);
         }
 
         private void SyncPresetDisplayNameFromAsset()
@@ -791,24 +990,60 @@ namespace toshi.VLiveKit.Photography
             assignFollowTargetOnStart = source.assignFollowTargetOnStart;
             followTargetBone = source.followTargetBone;
 
+            enableScreenPositionModule = source.enableScreenPositionModule;
+            useDirectorTimeForScreenPosition = source.useDirectorTimeForScreenPosition;
+            useScreenPositionSinWobble = source.useScreenPositionSinWobble;
+            useScreenPositionPerlinWobble = source.useScreenPositionPerlinWobble;
+            screenPositionMotionMode = source.screenPositionMotionMode;
+            screenPositionTimeOffset = source.screenPositionTimeOffset;
+            screenPositionTimeScalePrimary = source.screenPositionTimeScalePrimary;
+            screenPositionTimeScaleSecondary = source.screenPositionTimeScaleSecondary;
+            screenPositionIntensityScalePrimary = source.screenPositionIntensityScalePrimary;
+            screenPositionIntensityScaleSecondary = source.screenPositionIntensityScaleSecondary;
+            screenPositionBase = source.screenPositionBase;
+            screenPositionAmplitude = source.screenPositionAmplitude;
+            screenPositionFrequency = source.screenPositionFrequency;
+            screenPositionPhaseDeg = source.screenPositionPhaseDeg;
+            screenPositionPerlinOffset = source.screenPositionPerlinOffset;
+            previewScreenPositionInEditMode = source.previewScreenPositionInEditMode;
+
+            enableDutchRollModule = source.enableDutchRollModule;
+            useDirectorTimeForDutchRoll = source.useDirectorTimeForDutchRoll;
+            dutchRollMotionMode = source.dutchRollMotionMode;
+            dutchRollTimeOffset = source.dutchRollTimeOffset;
+            dutchRollTimeScalePrimary = source.dutchRollTimeScalePrimary;
+            dutchRollTimeScaleSecondary = source.dutchRollTimeScaleSecondary;
+            dutchRollIntensityScalePrimary = source.dutchRollIntensityScalePrimary;
+            dutchRollIntensityScaleSecondary = source.dutchRollIntensityScaleSecondary;
+            dutchRollBaseDegrees = source.dutchRollBaseDegrees;
+            dutchRollAmplitudeDegrees = source.dutchRollAmplitudeDegrees;
+            dutchRollFrequency = source.dutchRollFrequency;
+            dutchRollPhaseDeg = source.dutchRollPhaseDeg;
+            dutchRollPerlinOffset = source.dutchRollPerlinOffset;
+            previewDutchRollInEditMode = source.previewDutchRollInEditMode;
+
             enableBreathingZoomModule = source.enableBreathingZoomModule;
             useDirectorTimeForBreathingZoom = source.useDirectorTimeForBreathingZoom;
             breathingZoomTimeOffset = source.breathingZoomTimeOffset;
+            breathingZoomMotionMode = source.breathingZoomMotionMode;
             breathingZoomTimeScalePrimary = source.breathingZoomTimeScalePrimary;
             breathingZoomTimeScaleSecondary = source.breathingZoomTimeScaleSecondary;
             breathingZoomFovMin = source.breathingZoomFovMin;
             breathingZoomFovMax = source.breathingZoomFovMax;
             breathingZoomFrequencyHz = source.breathingZoomFrequencyHz;
+            breathingZoomPerlinOffset = source.breathingZoomPerlinOffset;
 
             enableRigDriftModule = source.enableRigDriftModule;
             driftSpace = source.driftSpace;
             syncRigDriftToDirector = source.syncRigDriftToDirector;
             rigDriftTimeScalePrimary = source.rigDriftTimeScalePrimary;
             rigDriftTimeScaleSecondary = source.rigDriftTimeScaleSecondary;
+            rigDriftMotionMode = source.rigDriftMotionMode;
             driftAxisWeight = source.driftAxisWeight;
             driftFrequency = source.driftFrequency;
             driftAmplitude = source.driftAmplitude;
             driftPhaseOffset = source.driftPhaseOffset;
+            driftPerlinOffset = source.driftPerlinOffset;
             driftRangeMin = source.driftRangeMin;
             driftRangeMax = source.driftRangeMax;
             rigDriftOffset = source.rigDriftOffset;
@@ -845,6 +1080,8 @@ namespace toshi.VLiveKit.Photography
             dollyBodyOffsetAmplitude = source.dollyBodyOffsetAmplitude;
             dollyBodyOffsetFrequency = source.dollyBodyOffsetFrequency;
             dollyBodyOffsetPhaseDeg = source.dollyBodyOffsetPhaseDeg;
+            dollyBodyOffsetMotionMode = source.dollyBodyOffsetMotionMode;
+            dollyBodyOffsetPerlinOffset = source.dollyBodyOffsetPerlinOffset;
             previewDollyOffsetInEditMode = source.previewDollyOffsetInEditMode;
 
             NormalizeValuesAfterPresetApply();
@@ -860,24 +1097,60 @@ namespace toshi.VLiveKit.Photography
             destination.assignFollowTargetOnStart = assignFollowTargetOnStart;
             destination.followTargetBone = followTargetBone;
 
+            destination.enableScreenPositionModule = enableScreenPositionModule;
+            destination.useDirectorTimeForScreenPosition = useDirectorTimeForScreenPosition;
+            destination.useScreenPositionSinWobble = useScreenPositionSinWobble;
+            destination.useScreenPositionPerlinWobble = useScreenPositionPerlinWobble;
+            destination.screenPositionMotionMode = screenPositionMotionMode;
+            destination.screenPositionTimeOffset = screenPositionTimeOffset;
+            destination.screenPositionTimeScalePrimary = screenPositionTimeScalePrimary;
+            destination.screenPositionTimeScaleSecondary = screenPositionTimeScaleSecondary;
+            destination.screenPositionIntensityScalePrimary = screenPositionIntensityScalePrimary;
+            destination.screenPositionIntensityScaleSecondary = screenPositionIntensityScaleSecondary;
+            destination.screenPositionBase = screenPositionBase;
+            destination.screenPositionAmplitude = screenPositionAmplitude;
+            destination.screenPositionFrequency = screenPositionFrequency;
+            destination.screenPositionPhaseDeg = screenPositionPhaseDeg;
+            destination.screenPositionPerlinOffset = screenPositionPerlinOffset;
+            destination.previewScreenPositionInEditMode = previewScreenPositionInEditMode;
+
+            destination.enableDutchRollModule = enableDutchRollModule;
+            destination.useDirectorTimeForDutchRoll = useDirectorTimeForDutchRoll;
+            destination.dutchRollMotionMode = dutchRollMotionMode;
+            destination.dutchRollTimeOffset = dutchRollTimeOffset;
+            destination.dutchRollTimeScalePrimary = dutchRollTimeScalePrimary;
+            destination.dutchRollTimeScaleSecondary = dutchRollTimeScaleSecondary;
+            destination.dutchRollIntensityScalePrimary = dutchRollIntensityScalePrimary;
+            destination.dutchRollIntensityScaleSecondary = dutchRollIntensityScaleSecondary;
+            destination.dutchRollBaseDegrees = dutchRollBaseDegrees;
+            destination.dutchRollAmplitudeDegrees = dutchRollAmplitudeDegrees;
+            destination.dutchRollFrequency = dutchRollFrequency;
+            destination.dutchRollPhaseDeg = dutchRollPhaseDeg;
+            destination.dutchRollPerlinOffset = dutchRollPerlinOffset;
+            destination.previewDutchRollInEditMode = previewDutchRollInEditMode;
+
             destination.enableBreathingZoomModule = enableBreathingZoomModule;
             destination.useDirectorTimeForBreathingZoom = useDirectorTimeForBreathingZoom;
             destination.breathingZoomTimeOffset = breathingZoomTimeOffset;
+            destination.breathingZoomMotionMode = breathingZoomMotionMode;
             destination.breathingZoomTimeScalePrimary = breathingZoomTimeScalePrimary;
             destination.breathingZoomTimeScaleSecondary = breathingZoomTimeScaleSecondary;
             destination.breathingZoomFovMin = breathingZoomFovMin;
             destination.breathingZoomFovMax = breathingZoomFovMax;
             destination.breathingZoomFrequencyHz = breathingZoomFrequencyHz;
+            destination.breathingZoomPerlinOffset = breathingZoomPerlinOffset;
 
             destination.enableRigDriftModule = enableRigDriftModule;
             destination.driftSpace = driftSpace;
             destination.syncRigDriftToDirector = syncRigDriftToDirector;
             destination.rigDriftTimeScalePrimary = rigDriftTimeScalePrimary;
             destination.rigDriftTimeScaleSecondary = rigDriftTimeScaleSecondary;
+            destination.rigDriftMotionMode = rigDriftMotionMode;
             destination.driftAxisWeight = driftAxisWeight;
             destination.driftFrequency = driftFrequency;
             destination.driftAmplitude = driftAmplitude;
             destination.driftPhaseOffset = driftPhaseOffset;
+            destination.driftPerlinOffset = driftPerlinOffset;
             destination.driftRangeMin = driftRangeMin;
             destination.driftRangeMax = driftRangeMax;
             destination.rigDriftOffset = rigDriftOffset;
@@ -914,11 +1187,27 @@ namespace toshi.VLiveKit.Photography
             destination.dollyBodyOffsetAmplitude = dollyBodyOffsetAmplitude;
             destination.dollyBodyOffsetFrequency = dollyBodyOffsetFrequency;
             destination.dollyBodyOffsetPhaseDeg = dollyBodyOffsetPhaseDeg;
+            destination.dollyBodyOffsetMotionMode = dollyBodyOffsetMotionMode;
+            destination.dollyBodyOffsetPerlinOffset = dollyBodyOffsetPerlinOffset;
             destination.previewDollyOffsetInEditMode = previewDollyOffsetInEditMode;
         }
 
         private void NormalizeValuesAfterPresetApply()
         {
+            screenPositionBase.x = Mathf.Clamp01(screenPositionBase.x);
+            screenPositionBase.y = Mathf.Clamp01(screenPositionBase.y);
+            screenPositionFrequency.x = Mathf.Max(0f, screenPositionFrequency.x);
+            screenPositionFrequency.y = Mathf.Max(0f, screenPositionFrequency.y);
+            dutchRollAmplitudeDegrees = Mathf.Max(0f, dutchRollAmplitudeDegrees);
+            dutchRollFrequency = Mathf.Max(0f, dutchRollFrequency);
+            breathingZoomFrequencyHz = Mathf.Max(0f, breathingZoomFrequencyHz);
+            driftFrequency.x = Mathf.Max(0f, driftFrequency.x);
+            driftFrequency.y = Mathf.Max(0f, driftFrequency.y);
+            driftFrequency.z = Mathf.Max(0f, driftFrequency.z);
+            dollyBodyOffsetFrequency.x = Mathf.Max(0f, dollyBodyOffsetFrequency.x);
+            dollyBodyOffsetFrequency.y = Mathf.Max(0f, dollyBodyOffsetFrequency.y);
+            dollyBodyOffsetFrequency.z = Mathf.Max(0f, dollyBodyOffsetFrequency.z);
+
             if (breathingZoomFovMax < breathingZoomFovMin)
             {
                 (breathingZoomFovMin, breathingZoomFovMax) = (breathingZoomFovMax, breathingZoomFovMin);

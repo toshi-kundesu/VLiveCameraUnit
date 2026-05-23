@@ -93,7 +93,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: f34eb4dc6ef440b4198bd3c901bafcb3, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -113,15 +113,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 1
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 15
   breathingZoomFovMax: 20
-  breathingZoomFrequencyHz: -0.03
+  breathingZoomFrequencyHz: 0
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 1080464003643993037}
   driftSpace: 1
@@ -129,10 +163,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1.25
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1.3}
   driftFrequency: {x: 0.3, y: 0.5, z: 2}
   driftAmplitude: {x: 0.3, y: 1, z: 1}
   driftPhaseOffset: {x: -0.57, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -8, y: -4, z: -11.66}
   driftRangeMax: {x: 8, y: -4.4, z: -1.09}
   rigDriftOffset: {x: 2.4699998, y: 4.95, z: 18.11}
@@ -175,10 +211,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &3140768326450544154
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,7 +314,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: ae2afb8c021a0004cba7f51485b6e77d, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -292,15 +334,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 0
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 30
   breathingZoomFovMax: 40
   breathingZoomFrequencyHz: 0.02
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 9156451165209049174}
   driftSpace: 0
@@ -308,10 +384,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1}
   driftFrequency: {x: 0.2, y: 0.2, z: 0.5}
   driftAmplitude: {x: 1, y: 1, z: 1}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: 0, y: 0, z: 1}
   driftRangeMax: {x: 0, y: 0, z: 5.78}
   rigDriftOffset: {x: 0, y: 0.31, z: 5.62}
@@ -354,10 +432,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &3837747878329864394
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,7 +535,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: 02c05f75e5471084792ac91a6df5104d, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -471,15 +555,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 1
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 40
   breathingZoomFovMax: 50
   breathingZoomFrequencyHz: 0.025
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 875841190765326599}
   driftSpace: 0
@@ -487,10 +605,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1}
   driftFrequency: {x: 0.15, y: 0, z: 0}
   driftAmplitude: {x: 1, y: 0, z: 0}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -10, y: 0, z: 0}
   driftRangeMax: {x: 10, y: 0, z: 0}
   rigDriftOffset: {x: 0, y: 0.63, z: 20.81}
@@ -533,10 +653,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &4054889797216162330
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,7 +946,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: e9bf5fbf3349a5c46bb12f98381b8304, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -840,15 +966,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 0
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 20
   breathingZoomFovMax: 40
   breathingZoomFrequencyHz: 1
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 9009156276872412532}
   driftSpace: 1
@@ -856,10 +1016,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1}
   driftFrequency: {x: 0.15, y: 1, z: 0.4}
   driftAmplitude: {x: 1, y: 1, z: 0.6}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -5, y: 0, z: -2.05}
   driftRangeMax: {x: 5, y: 0, z: 9.73}
   rigDriftOffset: {x: 0, y: 0.63, z: 15.16}
@@ -902,10 +1064,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &5197935140439377377
 GameObject:
   m_ObjectHideFlags: 0
@@ -1189,7 +1357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: 927006bce8a0fe249811d79d8e377884, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -1209,15 +1377,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 0
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 20
   breathingZoomFovMax: 40
   breathingZoomFrequencyHz: 1
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 7022824553615051049}
   driftSpace: 1
@@ -1225,10 +1427,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1}
   driftFrequency: {x: 0.2, y: 1, z: 0.4}
   driftAmplitude: {x: 1, y: 1, z: 1}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -5, y: 0, z: -2.05}
   driftRangeMax: {x: 5, y: 0, z: 9.73}
   rigDriftOffset: {x: 0, y: 0.63, z: 15.16}
@@ -1271,10 +1475,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &7511777845678507869
 GameObject:
   m_ObjectHideFlags: 0
@@ -1406,8 +1616,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c309ac11b0c30c54a83b7a13e9a1d916, type: 2}
   - {fileID: 11400000, guid: f70244c111b13564da4790d7d8fb28ef, type: 2}
   - {fileID: 11400000, guid: 2545a385d3d9ef94fb887149a9860ffa, type: 2}
-  cameraPrefab: {fileID: 4794093561411548720, guid: c0e277ff8dd56854fb38a6ca7db4730f,
-    type: 3}
+  cameraPrefab: {fileID: 4794093561411548720, guid: c0e277ff8dd56854fb38a6ca7db4730f, type: 3}
   applyPresetImmediately: 1
   renameFromPreset: 1
   assignLayerFromSlotName: 1
@@ -1420,33 +1629,76 @@ MonoBehaviour:
   targetRig: {fileID: 0}
   assignReferencesOnAwake: 1
   assignTargetsOnStart: 1
+  presetControlMode: 0
+  applySlotWhenManualPresetChanges: 1
+  shuffleOnStart: 0
+  shuffleIntervalSeconds: 5
   cameraPresetSlots:
   - cameraName: cam01
     preset: {fileID: 11400000, guid: ae2afb8c021a0004cba7f51485b6e77d, type: 2}
     cameraMan: {fileID: 1940672022032646255}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam02
     preset: {fileID: 11400000, guid: 02c05f75e5471084792ac91a6df5104d, type: 2}
     cameraMan: {fileID: 7710034589257297677}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam03
     preset: {fileID: 11400000, guid: f34eb4dc6ef440b4198bd3c901bafcb3, type: 2}
     cameraMan: {fileID: 5608112957087488753}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam04
     preset: {fileID: 11400000, guid: e9bf5fbf3349a5c46bb12f98381b8304, type: 2}
     cameraMan: {fileID: 3634908001648286966}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam05
     preset: {fileID: 11400000, guid: a104865024c5302488bc9c57391dc9c7, type: 2}
     cameraMan: {fileID: 363347454392858425}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam06
     preset: {fileID: 11400000, guid: 927006bce8a0fe249811d79d8e377884, type: 2}
     cameraMan: {fileID: 8612039760282175440}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam07
     preset: {fileID: 11400000, guid: 6b134a325f4c9a346b6686867025c1f0, type: 2}
     cameraMan: {fileID: 1449094095164913523}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   - cameraName: cam08
     preset: {fileID: 11400000, guid: fa5ecfda67eb60f4da027dfd6e82d652, type: 2}
     cameraMan: {fileID: 7871099259129632506}
+    usePresetTagFilter: 0
+    shotScaleFilter: 0
+    stageSideFilter: 0
+    cameraRigFilter: 0
+    customTagFilter:
   generatedCameraMen: []
-  prefabSaveTarget: {fileID: 0}
 --- !u!1 &7566046536087667387
 GameObject:
   m_ObjectHideFlags: 0
@@ -1540,7 +1792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: fa5ecfda67eb60f4da027dfd6e82d652, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -1560,15 +1812,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 1
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 20
   breathingZoomFovMax: 22
   breathingZoomFrequencyHz: 0.01
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftRigTarget: {fileID: 8779712126196070726}
   driftSpace: 0
@@ -1576,10 +1862,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 0, z: 1}
   driftFrequency: {x: 0.3, y: 0, z: 1}
   driftAmplitude: {x: 1, y: 1, z: 1}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -5, y: 0, z: -0.74}
   driftRangeMax: {x: 5, y: 0, z: 0}
   rigDriftOffset: {x: 3.6499999, y: 0.42000008, z: 7.3}
@@ -1622,10 +1910,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &8078163827619202201
 GameObject:
   m_ObjectHideFlags: 0
@@ -1719,7 +2013,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: a104865024c5302488bc9c57391dc9c7, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -1739,15 +2033,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 1
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 67.5
   breathingZoomFovMax: 68.9
   breathingZoomFrequencyHz: 0.05
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 0
   driftRigTarget: {fileID: 2357783087910980406}
   driftSpace: 0
@@ -1755,10 +2083,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 0, y: 0, z: 0}
   driftFrequency: {x: 0, y: 0, z: 0}
   driftAmplitude: {x: 0, y: 0, z: 0}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: 0, y: 0, z: 0}
   driftRangeMax: {x: 0, y: 0, z: 0}
   rigDriftOffset: {x: 0, y: 0, z: 0}
@@ -1801,10 +2131,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &8218058915726537700
 GameObject:
   m_ObjectHideFlags: 0
@@ -2183,7 +2519,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: 6b134a325f4c9a346b6686867025c1f0, type: 2}
-  applyPresetOnStart: 0
+  applyPresetOnStart: 1
   autoBindPlayableDirectorFromTimeTable: 1
   liveTimelineSectionName: 
   sharedPlayableDirector: {fileID: 0}
@@ -2203,15 +2539,49 @@ MonoBehaviour:
   followTargetBone: 0
   followTargetTransform: {fileID: 0}
   followTargetMarker: {fileID: 0}
+  enableScreenPositionModule: 0
+  screenPositionDirector: {fileID: 0}
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  dutchRollDirector: {fileID: 0}
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 0
   breathingZoomDirector: {fileID: 0}
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 60
   breathingZoomFovMax: 60
   breathingZoomFrequencyHz: 0.1
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 0
   driftRigTarget: {fileID: 8383827744557862147}
   driftSpace: 0
@@ -2219,10 +2589,12 @@ MonoBehaviour:
   rigDriftDirector: {fileID: 0}
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 0, z: 0}
   driftFrequency: {x: 0.2, y: 1, z: 1}
   driftAmplitude: {x: 0.3, y: 1, z: 1}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -5, y: 0, z: 0}
   driftRangeMax: {x: 5, y: 0, z: 0}
   rigDriftOffset: {x: 0, y: 0.5, z: 2.98}
@@ -2265,10 +2637,16 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1
   dollyBodyOffsetInitialValue: {x: 0, y: 0, z: 0}
   dollyBodyOffsetInitialized: 0
   breathingZoomEvaluatedTimeDebug: 0
+  screenPositionEvaluatedTimeDebug: 0
+  screenPositionOutputDebug: {x: 0, y: 0}
+  dutchRollEvaluatedTimeDebug: 0
+  dutchRollOutputDegreesDebug: 0
 --- !u!1 &9036309233941953778
 GameObject:
   m_ObjectHideFlags: 0

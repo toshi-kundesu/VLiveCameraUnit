@@ -153,15 +153,51 @@ namespace toshi.VLiveKit.Photography
         public bool assignFollowTargetOnStart = true;
         public HumanBodyBones followTargetBone = HumanBodyBones.Hips;
 
+        [Header("Screen Position Module")]
+        public bool enableScreenPositionModule = false;
+        public bool useDirectorTimeForScreenPosition = true;
+        public bool useScreenPositionSinWobble = true;
+        public bool useScreenPositionPerlinWobble = false;
+        public VLiveCamera.CameraMotionSignalMode screenPositionMotionMode = VLiveCamera.CameraMotionSignalMode.Sin;
+        public float screenPositionTimeOffset = 0f;
+        public float screenPositionTimeScalePrimary = 1f;
+        public float screenPositionTimeScaleSecondary = 1f;
+        public float screenPositionIntensityScalePrimary = 1f;
+        public float screenPositionIntensityScaleSecondary = 1f;
+        public Vector2 screenPositionBase = new Vector2(0.5f, 0.5f);
+        public Vector2 screenPositionAmplitude = new Vector2(0.05f, 0.05f);
+        public Vector2 screenPositionFrequency = new Vector2(0.25f, 0.35f);
+        public Vector2 screenPositionPhaseDeg = new Vector2(0f, 90f);
+        public Vector2 screenPositionPerlinOffset = new Vector2(0f, 17f);
+        public bool previewScreenPositionInEditMode = true;
+
+        [Header("Dutch Roll Module")]
+        public bool enableDutchRollModule = false;
+        public bool useDirectorTimeForDutchRoll = true;
+        public VLiveCamera.CameraMotionSignalMode dutchRollMotionMode = VLiveCamera.CameraMotionSignalMode.Sin;
+        public float dutchRollTimeOffset = 0f;
+        public float dutchRollTimeScalePrimary = 1f;
+        public float dutchRollTimeScaleSecondary = 1f;
+        public float dutchRollIntensityScalePrimary = 1f;
+        public float dutchRollIntensityScaleSecondary = 1f;
+        public float dutchRollBaseDegrees = 0f;
+        public float dutchRollAmplitudeDegrees = 5f;
+        public float dutchRollFrequency = 0.25f;
+        public float dutchRollPhaseDeg = 0f;
+        public float dutchRollPerlinOffset = 0f;
+        public bool previewDutchRollInEditMode = true;
+
         [Header("▼ Breathing Zoom Module")]
         public bool enableBreathingZoomModule = false;
         public bool useDirectorTimeForBreathingZoom = true;
         public float breathingZoomTimeOffset = 0f;
+        public VLiveCamera.CameraMotionSignalMode breathingZoomMotionMode = VLiveCamera.CameraMotionSignalMode.Sin;
         public float breathingZoomTimeScalePrimary = 1f;
         public float breathingZoomTimeScaleSecondary = 1f;
         public float breathingZoomFovMin = 30f;
         public float breathingZoomFovMax = 60f;
         public float breathingZoomFrequencyHz = 1f;
+        public float breathingZoomPerlinOffset = 0f;
 
         [Header("▼ Camera Rig Drift Module")]
         public bool enableRigDriftModule = false;
@@ -169,10 +205,12 @@ namespace toshi.VLiveKit.Photography
         public bool syncRigDriftToDirector = false;
         public float rigDriftTimeScalePrimary = 1f;
         public float rigDriftTimeScaleSecondary = 1f;
+        public VLiveCamera.CameraMotionSignalMode rigDriftMotionMode = VLiveCamera.CameraMotionSignalMode.Sin;
         public Vector3 driftAxisWeight = Vector3.one;
         public Vector3 driftFrequency = Vector3.one;
         public Vector3 driftAmplitude = Vector3.one;
         public Vector3 driftPhaseOffset = Vector3.zero;
+        public Vector3 driftPerlinOffset = new Vector3(0f, 17f, 31f);
         public Vector3 driftRangeMin = new Vector3(-1f, -1f, -1f);
         public Vector3 driftRangeMax = new Vector3(1f, 1f, 1f);
         public Vector3 rigDriftOffset = Vector3.zero;
@@ -211,6 +249,8 @@ namespace toshi.VLiveKit.Photography
         public Vector3 dollyBodyOffsetAmplitude = new Vector3(0.1f, 0.1f, 0.1f);
         public Vector3 dollyBodyOffsetFrequency = new Vector3(0.25f, 0.35f, 0.45f);
         public Vector3 dollyBodyOffsetPhaseDeg = new Vector3(0f, 90f, 180f);
+        public VLiveCamera.CameraMotionSignalMode dollyBodyOffsetMotionMode = VLiveCamera.CameraMotionSignalMode.Sin;
+        public Vector3 dollyBodyOffsetPerlinOffset = new Vector3(0f, 17f, 31f);
         public bool previewDollyOffsetInEditMode = true;
     }
 }

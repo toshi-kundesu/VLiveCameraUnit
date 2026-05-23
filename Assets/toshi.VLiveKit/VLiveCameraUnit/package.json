@@ -1,6 +1,6 @@
 ﻿{
     "name":  "com.toshi.vlivekit.cameraunit",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "displayName":  "VLive Camera Unit",
     "description":  "Camera tools for virtual live production.",
     "unity": "6000.3",
@@ -17,6 +17,11 @@
                         "displayName":  "Empty Scene",
                         "description":  "A blank scene for starting a VLive Camera Unit setup.",
                         "path":  "Samples~/Empty Scene"
+                    },
+                    {
+                        "displayName":  "VLK CAMERAUNIT Sample",
+                        "description":  "A complete VLive Camera Unit sample scene with camera presets and live-house volume assets.",
+                        "path":  "Samples"
                     }
                 ],
     "dependencies":  {

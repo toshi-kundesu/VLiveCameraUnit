@@ -159,6 +159,108 @@ namespace toshi.VLiveKit.Photography.Editor
             EditorGUILayout.EndVertical();
         }
 
+        private void DrawScreenPositionSectionBody()
+        {
+            EditorGUILayout.BeginVertical(boxStyle);
+
+            using (new EditorGUI.DisabledScope(enableScreenPositionModule == null || !enableScreenPositionModule.boolValue))
+            {
+                DrawSafeProperty(screenPositionDirector, "Director Override");
+                DrawSafeProperty(useDirectorTimeForScreenPosition, "Use Director Time");
+                DrawSafeProperty(useScreenPositionSinWobble, "Use Sin Wobble");
+                DrawSafeProperty(useScreenPositionPerlinWobble, "Use Perlin Noise Wobble");
+                DrawSafeProperty(screenPositionTimeOffset, "Time Offset");
+                DrawDualField(screenPositionTimeScalePrimary, screenPositionTimeScaleSecondary, "Time Scale");
+                DrawDualField(screenPositionIntensityScalePrimary, screenPositionIntensityScaleSecondary, "Intensity Scale");
+                DrawSafeProperty(screenPositionBase, "Base");
+                DrawSafeProperty(screenPositionAmplitude, "Amplitude");
+                DrawSafeProperty(screenPositionFrequency, "Frequency");
+
+                if (useScreenPositionSinWobble != null && useScreenPositionSinWobble.boolValue)
+                {
+                    DrawSafeProperty(screenPositionPhaseDeg, "Sin Phase Deg");
+                }
+
+                if (useScreenPositionPerlinWobble != null && useScreenPositionPerlinWobble.boolValue)
+                {
+                    DrawSafeProperty(screenPositionPerlinOffset, "Perlin Offset");
+                }
+
+                DrawSafeProperty(previewScreenPositionInEditMode, "Preview In Edit Mode");
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Preview"))
+                    {
+                        InvokeNonPublic(target, "ApplyCurrentScreenPositionOnce");
+                    }
+
+                    if (GUILayout.Button("Record Current As Base"))
+                    {
+                        InvokeNonPublic(target, "RecordCurrentScreenPositionAsBase");
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    DrawSafeProperty(screenPositionEvaluatedTimeDebug, "Eval Time");
+                    DrawSafeProperty(screenPositionOutputDebug, "Output");
+                }
+
+                DrawSafeStateLine("Director Override", screenPositionDirector, null, "Use Shared/TimeTable");
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawDutchRollSectionBody()
+        {
+            EditorGUILayout.BeginVertical(boxStyle);
+
+            using (new EditorGUI.DisabledScope(enableDutchRollModule == null || !enableDutchRollModule.boolValue))
+            {
+                DrawSafeProperty(dutchRollDirector, "Director Override");
+                DrawSafeProperty(useDirectorTimeForDutchRoll, "Use Director Time");
+                DrawSafeProperty(dutchRollMotionMode, "Motion Mode");
+                DrawSafeProperty(dutchRollTimeOffset, "Time Offset");
+                DrawDualField(dutchRollTimeScalePrimary, dutchRollTimeScaleSecondary, "Time Scale");
+                DrawDualField(dutchRollIntensityScalePrimary, dutchRollIntensityScaleSecondary, "Intensity Scale");
+                DrawSafeProperty(dutchRollBaseDegrees, "Base Degrees");
+                DrawSafeProperty(dutchRollAmplitudeDegrees, "Amplitude Degrees");
+                DrawSafeProperty(dutchRollFrequency, "Frequency");
+
+                if (IsMotionModePerlin(dutchRollMotionMode))
+                    DrawSafeProperty(dutchRollPerlinOffset, "Perlin Offset");
+                else
+                    DrawSafeProperty(dutchRollPhaseDeg, "Phase Deg");
+
+                DrawSafeProperty(previewDutchRollInEditMode, "Preview In Edit Mode");
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Preview"))
+                    {
+                        InvokeNonPublic(target, "ApplyCurrentDutchRollOnce");
+                    }
+
+                    if (GUILayout.Button("Record Current As Base"))
+                    {
+                        InvokeNonPublic(target, "RecordCurrentDutchAsBase");
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    DrawSafeProperty(dutchRollEvaluatedTimeDebug, "Eval Time");
+                    DrawSafeProperty(dutchRollOutputDegreesDebug, "Output Degrees");
+                }
+
+                DrawSafeStateLine("Director Override", dutchRollDirector, null, "Use Shared/TimeTable");
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
         private void DrawBreathingZoomSectionBody()
         {
             EditorGUILayout.BeginVertical(boxStyle);
@@ -167,11 +269,14 @@ namespace toshi.VLiveKit.Photography.Editor
             {
                 DrawSafeProperty(breathingZoomDirector, "Director Override");
                 DrawSafeProperty(useDirectorTimeForBreathingZoom, "Use Director Time");
+                DrawSafeProperty(breathingZoomMotionMode, "Motion Mode");
                 DrawSafeProperty(breathingZoomTimeOffset, "Time Offset");
                 DrawDualField(breathingZoomTimeScalePrimary, breathingZoomTimeScaleSecondary, "Time Scale");
                 DrawSafeProperty(breathingZoomFovMin, "FOV Min");
                 DrawSafeProperty(breathingZoomFovMax, "FOV Max");
                 DrawSafeProperty(breathingZoomFrequencyHz, "Frequency Hz");
+                if (IsMotionModePerlin(breathingZoomMotionMode))
+                    DrawSafeProperty(breathingZoomPerlinOffset, "Perlin Offset");
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -206,10 +311,13 @@ namespace toshi.VLiveKit.Photography.Editor
                 DrawSafeProperty(syncRigDriftToDirector, "Sync To Director");
                 DrawSafeProperty(rigDriftDirector, "Director Override");
                 DrawDualField(rigDriftTimeScalePrimary, rigDriftTimeScaleSecondary, "Time Scale");
+                DrawSafeProperty(rigDriftMotionMode, "Motion Mode");
                 DrawSafeProperty(driftAxisWeight, "Axis Weight");
                 DrawSafeProperty(driftFrequency, "Frequency");
                 DrawSafeProperty(driftAmplitude, "Amplitude");
                 DrawSafeProperty(driftPhaseOffset, "Phase Offset");
+                if (IsMotionModePerlin(rigDriftMotionMode))
+                    DrawSafeProperty(driftPerlinOffset, "Perlin Offset");
                 DrawSafeProperty(driftRangeMin, "Range Min");
                 DrawSafeProperty(driftRangeMax, "Range Max");
                 DrawSafeProperty(rigDriftOffset, "Rig Offset");
@@ -287,7 +395,10 @@ namespace toshi.VLiveKit.Photography.Editor
                 DrawSafeProperty(dollyBodyOffsetBase, "Base Offset");
                 DrawSafeProperty(dollyBodyOffsetAmplitude, "Amplitude");
                 DrawSafeProperty(dollyBodyOffsetFrequency, "Frequency");
+                DrawSafeProperty(dollyBodyOffsetMotionMode, "Motion Mode");
                 DrawSafeProperty(dollyBodyOffsetPhaseDeg, "Phase Deg");
+                if (IsMotionModePerlin(dollyBodyOffsetMotionMode))
+                    DrawSafeProperty(dollyBodyOffsetPerlinOffset, "Perlin Offset");
                 DrawSafeProperty(previewDollyOffsetInEditMode, "Preview In Edit Mode");
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -313,14 +424,21 @@ namespace toshi.VLiveKit.Photography.Editor
         {
             Rect rect = EditorGUILayout.GetControlRect(false, 22f);
 
-            Rect foldRect = new Rect(rect.x, rect.y, rect.width - 60f, rect.height);
-            Rect toggleRect = new Rect(rect.xMax - 52f, rect.y + 1f, 52f, rect.height);
+            Rect foldRect = new Rect(rect.x, rect.y, rect.width - 78f, rect.height);
+            Rect toggleRect = new Rect(rect.xMax - 70f, rect.y + 1f, 70f, rect.height);
 
             state = EditorGUI.Foldout(foldRect, state, title, true, foldoutStyle);
 
             if (enabledProperty != null)
             {
-                EditorGUI.PropertyField(toggleRect, enabledProperty, GUIContent.none);
+                EditorGUI.showMixedValue = enabledProperty.hasMultipleDifferentValues;
+                EditorGUI.BeginChangeCheck();
+                bool enabled = EditorGUI.ToggleLeft(toggleRect, "On", enabledProperty.boolValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    enabledProperty.boolValue = enabled;
+                }
+                EditorGUI.showMixedValue = false;
             }
 
             return state;
@@ -372,6 +490,12 @@ namespace toshi.VLiveKit.Photography.Editor
         {
             return modeProperty != null
                 && modeProperty.enumValueIndex == (int)VLiveCamera.TargetReferenceMode.DirectTransform;
+        }
+
+        private bool IsMotionModePerlin(SerializedProperty modeProperty)
+        {
+            return modeProperty != null
+                && modeProperty.enumValueIndex == (int)VLiveCamera.CameraMotionSignalMode.PerlinNoise;
         }
 
         private void DrawSafeStateLine(string label, SerializedProperty prop, string presentText = null, string missingText = "None")

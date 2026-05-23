@@ -14,32 +14,70 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   presetDisplayName: vcam16
   presetDescription: "\u30E9\u30A4\u30D6\u7528\u30AB\u30E1\u30E9\u306E\u6F14\u51FA\u5024\u30D7\u30EA\u30BB\u30C3\u30C8"
+  shotScaleTags: 0
+  stageSideTags: 0
+  cameraRigTags: 0
+  customTags: []
   enableLookTargetModule: 1
   assignLookTargetOnStart: 1
   lookTargetBone: 0
   enableFollowTargetModule: 0
   assignFollowTargetOnStart: 1
   followTargetBone: 0
+  enableScreenPositionModule: 0
+  useDirectorTimeForScreenPosition: 1
+  useScreenPositionSinWobble: 1
+  useScreenPositionPerlinWobble: 0
+  screenPositionMotionMode: 0
+  screenPositionTimeOffset: 0
+  screenPositionTimeScalePrimary: 1
+  screenPositionTimeScaleSecondary: 1
+  screenPositionIntensityScalePrimary: 1
+  screenPositionIntensityScaleSecondary: 1
+  screenPositionBase: {x: 0.5, y: 0.5}
+  screenPositionAmplitude: {x: 0.05, y: 0.05}
+  screenPositionFrequency: {x: 0.25, y: 0.35}
+  screenPositionPhaseDeg: {x: 0, y: 90}
+  screenPositionPerlinOffset: {x: 0, y: 17}
+  previewScreenPositionInEditMode: 1
+  enableDutchRollModule: 0
+  useDirectorTimeForDutchRoll: 1
+  dutchRollMotionMode: 0
+  dutchRollTimeOffset: 0
+  dutchRollTimeScalePrimary: 1
+  dutchRollTimeScaleSecondary: 1
+  dutchRollIntensityScalePrimary: 1
+  dutchRollIntensityScaleSecondary: 1
+  dutchRollBaseDegrees: 0
+  dutchRollAmplitudeDegrees: 5
+  dutchRollFrequency: 0.25
+  dutchRollPhaseDeg: 0
+  dutchRollPerlinOffset: 0
+  previewDutchRollInEditMode: 1
   enableBreathingZoomModule: 0
   useDirectorTimeForBreathingZoom: 1
   breathingZoomTimeOffset: 0
+  breathingZoomMotionMode: 0
   breathingZoomTimeScalePrimary: 1
   breathingZoomTimeScaleSecondary: 1
   breathingZoomFovMin: 20
   breathingZoomFovMax: 40
   breathingZoomFrequencyHz: 1
+  breathingZoomPerlinOffset: 0
   enableRigDriftModule: 1
   driftSpace: 1
   syncRigDriftToDirector: 1
   rigDriftTimeScalePrimary: 1
   rigDriftTimeScaleSecondary: 1
+  rigDriftMotionMode: 0
   driftAxisWeight: {x: 1, y: 1, z: 1}
   driftFrequency: {x: 0.2, y: 1, z: 0.4}
   driftAmplitude: {x: 1, y: 1, z: 1}
   driftPhaseOffset: {x: 0, y: 0, z: 0}
+  driftPerlinOffset: {x: 0, y: 17, z: 31}
   driftRangeMin: {x: -5, y: 0, z: -2.05}
-  driftRangeMax: {x: 5, y: 0, z: 9.73}
-  rigDriftOffset: {x: 0, y: 0.63, z: 15.16}
+  driftRangeMax: {x: 5, y: 0, z: 0}
+  rigDriftOffset: {x: 0, y: 0.63, z: 11.35}
   useFigureEightDrift: 1
   enableAccentZoomModule: 0
   accentZoomFovMin: 30
@@ -71,4 +109,6 @@ MonoBehaviour:
   dollyBodyOffsetAmplitude: {x: 0.1, y: 0.1, z: 0.1}
   dollyBodyOffsetFrequency: {x: 0.25, y: 0.35, z: 0.45}
   dollyBodyOffsetPhaseDeg: {x: 0, y: 90, z: 180}
+  dollyBodyOffsetMotionMode: 0
+  dollyBodyOffsetPerlinOffset: {x: 0, y: 17, z: 31}
   previewDollyOffsetInEditMode: 1

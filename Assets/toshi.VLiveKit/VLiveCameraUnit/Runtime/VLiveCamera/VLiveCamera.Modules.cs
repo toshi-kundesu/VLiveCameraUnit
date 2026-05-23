@@ -96,15 +96,93 @@ namespace toshi.VLiveKit.Photography
             AssignFollowTarget();
         }
 
+        private void ActivateLookTargetModule()
+        {
+            CaptureLookTargetBeforeModule();
+            AssignLookTarget();
+        }
+
+        private void DeactivateLookTargetModule()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            if (lookTargetBeforeModuleCaptured)
+            {
+                stageVirtualCamera.LookAt = lookTargetBeforeModule;
+            }
+            else if (lookTargetMarker != null && stageVirtualCamera.LookAt == lookTargetMarker.transform)
+            {
+                stageVirtualCamera.LookAt = null;
+            }
+
+            lookTargetBeforeModule = null;
+            lookTargetBeforeModuleCaptured = false;
+        }
+
+        private void CaptureLookTargetBeforeModule()
+        {
+            if (lookTargetBeforeModuleCaptured)
+                return;
+
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            lookTargetBeforeModule = stageVirtualCamera.LookAt;
+            lookTargetBeforeModuleCaptured = true;
+        }
+
+        private void ActivateFollowTargetModule()
+        {
+            CaptureFollowTargetBeforeModule();
+            AssignFollowTarget();
+        }
+
+        private void DeactivateFollowTargetModule()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            if (followTargetBeforeModuleCaptured)
+            {
+                stageVirtualCamera.Follow = followTargetBeforeModule;
+            }
+            else if (followTargetMarker != null && stageVirtualCamera.Follow == followTargetMarker.transform)
+            {
+                stageVirtualCamera.Follow = null;
+            }
+
+            followTargetBeforeModule = null;
+            followTargetBeforeModuleCaptured = false;
+        }
+
+        private void CaptureFollowTargetBeforeModule()
+        {
+            if (followTargetBeforeModuleCaptured)
+                return;
+
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            followTargetBeforeModule = stageVirtualCamera.Follow;
+            followTargetBeforeModuleCaptured = true;
+        }
+
         private Transform ResolveLookTargetTransform()
         {
             if (lookTargetMode == TargetReferenceMode.DirectTransform)
             {
                 if (lookTargetTransform == null)
                 {
-                    lookTargetMarker = null;
-                    Debug.LogWarning("[VLiveCamera] Look Target Transform が指定されていません。", this);
-                    return null;
+                    return ResolveFallbackLookTargetTransform();
                 }
 
                 lookTargetMarker = lookTargetTransform.gameObject;
@@ -114,20 +192,54 @@ namespace toshi.VLiveKit.Photography
             VLiveLookTargetRig rig = ResolveLookTargetRig(lookTargetRig);
             if (rig == null)
             {
-                lookTargetMarker = null;
-                Debug.LogWarning("[VLiveCamera] Look 用 VLiveLookTargetRig が指定されていません。", this);
-                return null;
+                return ResolveFallbackLookTargetTransform();
+            }
+
+            var lookTargetChannels = rig.LookTargetChannels;
+            if (lookTargetChannels == null || lookTargetChannels.Count == 0)
+            {
+                return ResolveFallbackLookTargetTransform();
             }
 
             lookTargetMarker = rig.GetBoneTG(lookTargetBone);
 
             if (lookTargetMarker == null)
             {
-                Debug.LogWarning($"[VLiveCamera] {lookTargetBone} のターゲットが見つかりません。", this);
-                return null;
+                return ResolveFallbackLookTargetTransform();
             }
 
             return lookTargetMarker.transform;
+        }
+
+        private Transform ResolveFallbackLookTargetTransform()
+        {
+            if (fallbackLookTargetTransform == null)
+            {
+                GameObject fallbackTarget = new GameObject($"{name}_DefaultLookTarget");
+                fallbackLookTargetTransform = fallbackTarget.transform;
+
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    UnityEditor.Undo.RegisterCreatedObjectUndo(fallbackTarget, "Create Default Look Target");
+                    UnityEditor.EditorUtility.SetDirty(this);
+                }
+#endif
+            }
+
+            fallbackLookTargetTransform.position = DefaultLookTargetPosition;
+            fallbackLookTargetTransform.rotation = Quaternion.identity;
+            lookTargetMarker = fallbackLookTargetTransform.gameObject;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+                UnityEditor.EditorUtility.SetDirty(fallbackLookTargetTransform);
+            }
+#endif
+
+            return fallbackLookTargetTransform;
         }
 
         private Transform ResolveFollowTargetTransform()
@@ -164,6 +276,286 @@ namespace toshi.VLiveKit.Photography
             return followTargetMarker.transform;
         }
 
+        private static float EvaluateMotionSignal(
+            CameraMotionSignalMode mode,
+            double time,
+            float frequency,
+            float phaseRadians,
+            float perlinOffset,
+            float perlinLane,
+            bool frequencyIsCycles)
+        {
+            float scaledTime = (float)time * Mathf.Max(0f, frequency);
+
+            switch (mode)
+            {
+                case CameraMotionSignalMode.PerlinNoise:
+                    return (Mathf.PerlinNoise(scaledTime + perlinOffset, perlinLane) * 2f) - 1f;
+
+                case CameraMotionSignalMode.Sin:
+                default:
+                    float angle = frequencyIsCycles ? (scaledTime * Tau) + phaseRadians : scaledTime + phaseRadians;
+                    return Mathf.Sin(angle);
+            }
+        }
+
+        private double GetMotionEvaluatedTime(
+            PlayableDirector overrideDirector,
+            bool useDirectorTime,
+            float timeOffset,
+            float timeScalePrimary,
+            float timeScaleSecondary)
+        {
+            PlayableDirector director = ResolveDirector(overrideDirector);
+            double baseTime = useDirectorTime && director != null
+                ? director.time + timeOffset
+                : Time.timeSinceLevelLoad + timeOffset;
+
+            double multiplier = (double)(timeScalePrimary * timeScaleSecondary);
+            return double.IsNaN(multiplier) || double.IsInfinity(multiplier)
+                ? baseTime
+                : baseTime * multiplier;
+        }
+
+        // ============================================================
+        // Screen Position
+        // ============================================================
+
+        private void DriveScreenPosition()
+        {
+            if (!Application.isPlaying && !previewScreenPositionInEditMode)
+                return;
+
+            if (!TryResolveScreenDriver())
+                return;
+
+            double time = GetMotionEvaluatedTime(
+                screenPositionDirector,
+                useDirectorTimeForScreenPosition,
+                screenPositionTimeOffset,
+                screenPositionTimeScalePrimary,
+                screenPositionTimeScaleSecondary);
+
+            float intensity = screenPositionIntensityScalePrimary * screenPositionIntensityScaleSecondary;
+            Vector2 signal = Vector2.zero;
+
+            if (useScreenPositionSinWobble)
+            {
+                signal += new Vector2(
+                    EvaluateMotionSignal(
+                        CameraMotionSignalMode.Sin,
+                        time,
+                        screenPositionFrequency.x,
+                        screenPositionPhaseDeg.x * Mathf.Deg2Rad,
+                        screenPositionPerlinOffset.x,
+                        0f,
+                        true),
+                    EvaluateMotionSignal(
+                        CameraMotionSignalMode.Sin,
+                        time,
+                        screenPositionFrequency.y,
+                        screenPositionPhaseDeg.y * Mathf.Deg2Rad,
+                        screenPositionPerlinOffset.y,
+                        17f,
+                        true));
+            }
+
+            if (useScreenPositionPerlinWobble)
+            {
+                signal += new Vector2(
+                    EvaluateMotionSignal(
+                        CameraMotionSignalMode.PerlinNoise,
+                        time,
+                        screenPositionFrequency.x,
+                        screenPositionPhaseDeg.x * Mathf.Deg2Rad,
+                        screenPositionPerlinOffset.x,
+                        0f,
+                        true),
+                    EvaluateMotionSignal(
+                        CameraMotionSignalMode.PerlinNoise,
+                        time,
+                        screenPositionFrequency.y,
+                        screenPositionPhaseDeg.y * Mathf.Deg2Rad,
+                        screenPositionPerlinOffset.y,
+                        17f,
+                        true));
+            }
+
+            Vector2 output = screenPositionBase + Vector2.Scale(screenPositionAmplitude, signal) * intensity;
+            output.x = Mathf.Clamp01(output.x);
+            output.y = Mathf.Clamp01(output.y);
+
+            ApplyScreenPosition(output);
+
+#if UNITY_EDITOR
+            screenPositionEvaluatedTimeDebug = (float)time;
+            screenPositionOutputDebug = output;
+#endif
+        }
+
+        private bool TryResolveScreenDriver()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return false;
+
+            if (cachedComposer == null)
+                cachedComposer = stageVirtualCamera.GetCinemachineComponent<CinemachineComposer>();
+
+            if (cachedFramingTransposer == null)
+                cachedFramingTransposer = stageVirtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
+
+            return cachedComposer != null || cachedFramingTransposer != null;
+        }
+
+        private void ApplyScreenPosition(Vector2 screenPosition)
+        {
+            if (cachedComposer != null)
+            {
+                cachedComposer.m_ScreenX = screenPosition.x;
+                cachedComposer.m_ScreenY = screenPosition.y;
+                return;
+            }
+
+            if (cachedFramingTransposer != null)
+            {
+                cachedFramingTransposer.m_ScreenX = screenPosition.x;
+                cachedFramingTransposer.m_ScreenY = screenPosition.y;
+            }
+        }
+
+        private bool TryReadCurrentScreenPosition(out Vector2 screenPosition)
+        {
+            screenPosition = screenPositionBase;
+
+            if (!TryResolveScreenDriver())
+                return false;
+
+            if (cachedComposer != null)
+            {
+                screenPosition = new Vector2(cachedComposer.m_ScreenX, cachedComposer.m_ScreenY);
+                return true;
+            }
+
+            if (cachedFramingTransposer != null)
+            {
+                screenPosition = new Vector2(cachedFramingTransposer.m_ScreenX, cachedFramingTransposer.m_ScreenY);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void RestoreScreenPositionBase()
+        {
+            if (!TryResolveScreenDriver())
+                return;
+
+            ApplyScreenPosition(screenPositionBase);
+
+#if UNITY_EDITOR
+            screenPositionOutputDebug = screenPositionBase;
+#endif
+        }
+
+        [ContextMenu("Apply Current Screen Position Once")]
+        private void ApplyCurrentScreenPositionOnce()
+        {
+            if (!enableScreenPositionModule)
+                return;
+
+            DriveScreenPosition();
+        }
+
+        [ContextMenu("Record Current Screen Position As Base")]
+        private void RecordCurrentScreenPositionAsBase()
+        {
+            if (TryReadCurrentScreenPosition(out Vector2 currentScreenPosition))
+            {
+                screenPositionBase = currentScreenPosition;
+            }
+        }
+
+        // ============================================================
+        // Dutch Roll
+        // ============================================================
+
+        private void DriveDutchRoll()
+        {
+            if (!Application.isPlaying && !previewDutchRollInEditMode)
+                return;
+
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            double time = GetMotionEvaluatedTime(
+                dutchRollDirector,
+                useDirectorTimeForDutchRoll,
+                dutchRollTimeOffset,
+                dutchRollTimeScalePrimary,
+                dutchRollTimeScaleSecondary);
+
+            float signal = EvaluateMotionSignal(
+                dutchRollMotionMode,
+                time,
+                dutchRollFrequency,
+                dutchRollPhaseDeg * Mathf.Deg2Rad,
+                dutchRollPerlinOffset,
+                0f,
+                true);
+
+            float intensity = dutchRollIntensityScalePrimary * dutchRollIntensityScaleSecondary;
+            float dutchDegrees = dutchRollBaseDegrees + dutchRollAmplitudeDegrees * signal * intensity;
+
+            LensSettings lens = stageVirtualCamera.m_Lens;
+            lens.Dutch = dutchDegrees;
+            stageVirtualCamera.m_Lens = lens;
+
+#if UNITY_EDITOR
+            dutchRollEvaluatedTimeDebug = (float)time;
+            dutchRollOutputDegreesDebug = dutchDegrees;
+#endif
+        }
+
+        private void RestoreDutchRollBase()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            LensSettings lens = stageVirtualCamera.m_Lens;
+            lens.Dutch = dutchRollBaseDegrees;
+            stageVirtualCamera.m_Lens = lens;
+
+#if UNITY_EDITOR
+            dutchRollOutputDegreesDebug = dutchRollBaseDegrees;
+#endif
+        }
+
+        [ContextMenu("Apply Current Dutch Roll Once")]
+        private void ApplyCurrentDutchRollOnce()
+        {
+            if (!enableDutchRollModule)
+                return;
+
+            DriveDutchRoll();
+        }
+
+        [ContextMenu("Record Current Dutch As Base")]
+        private void RecordCurrentDutchAsBase()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            dutchRollBaseDegrees = stageVirtualCamera.m_Lens.Dutch;
+        }
+
         // ============================================================
         // Breathing Zoom
         // ============================================================
@@ -184,9 +576,16 @@ namespace toshi.VLiveKit.Photography
             double time = GetBreathingZoomEvaluatedTime();
             float center = (breathingZoomFovMin + breathingZoomFovMax) * 0.5f;
             float amplitude = (breathingZoomFovMax - breathingZoomFovMin) * 0.5f;
-            float angle = (float)(time * breathingZoomFrequencyHz * Mathf.PI * 2.0);
+            float signal = EvaluateMotionSignal(
+                breathingZoomMotionMode,
+                time,
+                breathingZoomFrequencyHz,
+                0f,
+                breathingZoomPerlinOffset,
+                0f,
+                true);
 
-            return center + amplitude * Mathf.Sin(angle);
+            return center + amplitude * signal;
         }
 
         private double GetBreathingZoomEvaluatedTime()
@@ -217,6 +616,37 @@ namespace toshi.VLiveKit.Photography
             LensSettings lens = stageVirtualCamera.m_Lens;
             lens.FieldOfView = fov;
             stageVirtualCamera.m_Lens = lens;
+        }
+
+        private void CaptureFovBeforeModules()
+        {
+            if (fovBeforeModulesCaptured)
+                return;
+
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null)
+                return;
+
+            fovBeforeModules = stageVirtualCamera.m_Lens.FieldOfView;
+            fovBeforeModulesCaptured = true;
+        }
+
+        private void RestoreFovBeforeModules()
+        {
+            ResolveStageCameraReference();
+
+            if (stageVirtualCamera == null || !fovBeforeModulesCaptured)
+                return;
+
+            LensSettings lens = stageVirtualCamera.m_Lens;
+            lens.FieldOfView = fovBeforeModules;
+            stageVirtualCamera.m_Lens = lens;
+
+            fovBeforeModulesCaptured = false;
+            accentZoomOutputFov = 0f;
+            accentZoomVelocityFov = 0f;
+            accentZoomPreviousEvalTime = double.NaN;
         }
 
         [ContextMenu("Apply Current Breathing Zoom Once")]
@@ -262,6 +692,40 @@ namespace toshi.VLiveKit.Photography
             ApplyRigDriftPose();
         }
 
+        private void CaptureRigDriftPoseBeforeModule()
+        {
+            if (rigDriftPoseBeforeModuleCaptured)
+                return;
+
+            ResolveRigDriftTarget();
+
+            if (resolvedDriftRigTarget == null)
+                return;
+
+            rigDriftPositionBeforeModule = resolvedDriftRigTarget.position;
+            rigDriftLocalPositionBeforeModule = resolvedDriftRigTarget.localPosition;
+            rigDriftSpaceBeforeModule = driftSpace;
+            rigDriftPoseBeforeModuleCaptured = true;
+        }
+
+        private void RestoreRigDriftPoseBeforeModule()
+        {
+            if (!rigDriftPoseBeforeModuleCaptured)
+                return;
+
+            ResolveRigDriftTarget();
+
+            if (resolvedDriftRigTarget != null)
+            {
+                if (rigDriftSpaceBeforeModule == CameraRigSpace.Global)
+                    resolvedDriftRigTarget.position = rigDriftPositionBeforeModule;
+                else
+                    resolvedDriftRigTarget.localPosition = rigDriftLocalPositionBeforeModule;
+            }
+
+            rigDriftPoseBeforeModuleCaptured = false;
+        }
+
         private void UpdateRigDriftTime()
         {
             PlayableDirector director = ResolveDirector(rigDriftDirector);
@@ -278,14 +742,34 @@ namespace toshi.VLiveKit.Photography
 
         private void ApplyRigDriftPose()
         {
-            float sinX = Mathf.Sin((rigDriftTime * driftFrequency.x) + driftPhaseOffset.x);
-            float sinY = useFigureEightDrift
-                ? Mathf.Sin((2f * rigDriftTime * driftFrequency.y) + driftPhaseOffset.y)
-                : Mathf.Sin((rigDriftTime * driftFrequency.y) + driftPhaseOffset.y);
+            float signalX = EvaluateMotionSignal(
+                rigDriftMotionMode,
+                rigDriftTime,
+                driftFrequency.x,
+                driftPhaseOffset.x,
+                driftPerlinOffset.x,
+                0f,
+                false);
+            float signalY = EvaluateMotionSignal(
+                rigDriftMotionMode,
+                useFigureEightDrift ? rigDriftTime * 2f : rigDriftTime,
+                driftFrequency.y,
+                driftPhaseOffset.y,
+                driftPerlinOffset.y,
+                17f,
+                false);
+            float signalZ = EvaluateMotionSignal(
+                rigDriftMotionMode,
+                rigDriftTime,
+                driftFrequency.z,
+                driftPhaseOffset.z,
+                driftPerlinOffset.z,
+                31f,
+                false);
 
-            float moveX = RemapValue(sinX * driftAmplitude.x * driftAxisWeight.x, -1f, 1f, driftRangeMin.x, driftRangeMax.x);
-            float moveY = RemapValue(sinY * driftAmplitude.y * driftAxisWeight.y, -1f, 1f, driftRangeMin.y, driftRangeMax.y);
-            float moveZ = RemapValue(sinX * driftAmplitude.z * driftAxisWeight.z, -1f, 1f, driftRangeMin.z, driftRangeMax.z);
+            float moveX = RemapValue(signalX * driftAmplitude.x * driftAxisWeight.x, -1f, 1f, driftRangeMin.x, driftRangeMax.x);
+            float moveY = RemapValue(signalY * driftAmplitude.y * driftAxisWeight.y, -1f, 1f, driftRangeMin.y, driftRangeMax.y);
+            float moveZ = RemapValue(signalZ * driftAmplitude.z * driftAxisWeight.z, -1f, 1f, driftRangeMin.z, driftRangeMax.z);
 
             Vector3 finalPosition = new Vector3(moveX, moveY, moveZ) + rigDriftOffset;
 
@@ -424,6 +908,13 @@ namespace toshi.VLiveKit.Photography
             }
         }
 
+        private void ResetAccentZoomRuntimeState()
+        {
+            ResolveAccentZoomBaseFov();
+            ResetAccentZoomOutputToBase();
+            accentZoomPreviousEvalTime = double.NaN;
+        }
+
         private double GetAccentZoomEvaluatedTime(PlayableDirector director)
         {
             if (director == null)
@@ -499,20 +990,34 @@ namespace toshi.VLiveKit.Photography
 
         private void InitializeDollyBodyOffsetBase()
         {
+            bool initialized = false;
+
             if (cachedBodyTransposer != null)
             {
                 dollyBodyOffsetInitialValue = cachedBodyTransposer.m_FollowOffset;
                 if (dollyBodyOffsetBase == Vector3.zero)
                     dollyBodyOffsetBase = dollyBodyOffsetInitialValue;
+                initialized = true;
             }
             else if (cachedFramingTransposer != null)
             {
                 dollyBodyOffsetInitialValue = cachedFramingTransposer.m_TrackedObjectOffset;
                 if (dollyBodyOffsetBase == Vector3.zero)
                     dollyBodyOffsetBase = dollyBodyOffsetInitialValue;
+                initialized = true;
             }
 
-            dollyBodyOffsetInitialized = true;
+            dollyBodyOffsetInitialized = initialized;
+        }
+
+        private void ActivateDollyBodyOffsetModule()
+        {
+            CacheBodyDriverComponents();
+
+            if (!dollyBodyOffsetInitialized)
+                InitializeDollyBodyOffsetBase();
+
+            DriveDollyBodyOffset();
         }
 
         private void DriveDollyBodyOffset()
@@ -527,6 +1032,9 @@ namespace toshi.VLiveKit.Photography
                     return;
             }
 
+            if (!dollyBodyOffsetInitialized)
+                InitializeDollyBodyOffsetBase();
+
             PlayableDirector director = ResolveDirector(dollyBodyOffsetDirector);
 
             float t = director
@@ -535,9 +1043,30 @@ namespace toshi.VLiveKit.Photography
 
             Vector3 rad = dollyBodyOffsetPhaseDeg * Mathf.Deg2Rad;
             Vector3 wobble = new Vector3(
-                dollyBodyOffsetAmplitude.x * Mathf.Sin(Tau * dollyBodyOffsetFrequency.x * t + rad.x),
-                dollyBodyOffsetAmplitude.y * Mathf.Sin(Tau * dollyBodyOffsetFrequency.y * t + rad.y),
-                dollyBodyOffsetAmplitude.z * Mathf.Sin(Tau * dollyBodyOffsetFrequency.z * t + rad.z)
+                dollyBodyOffsetAmplitude.x * EvaluateMotionSignal(
+                    dollyBodyOffsetMotionMode,
+                    t,
+                    dollyBodyOffsetFrequency.x,
+                    rad.x,
+                    dollyBodyOffsetPerlinOffset.x,
+                    0f,
+                    true),
+                dollyBodyOffsetAmplitude.y * EvaluateMotionSignal(
+                    dollyBodyOffsetMotionMode,
+                    t,
+                    dollyBodyOffsetFrequency.y,
+                    rad.y,
+                    dollyBodyOffsetPerlinOffset.y,
+                    17f,
+                    true),
+                dollyBodyOffsetAmplitude.z * EvaluateMotionSignal(
+                    dollyBodyOffsetMotionMode,
+                    t,
+                    dollyBodyOffsetFrequency.z,
+                    rad.z,
+                    dollyBodyOffsetPerlinOffset.z,
+                    31f,
+                    true)
             );
 
             Vector3 target = dollyBodyOffsetBase + wobble;
@@ -546,6 +1075,20 @@ namespace toshi.VLiveKit.Photography
                 cachedBodyTransposer.m_FollowOffset = target;
             else if (cachedFramingTransposer != null)
                 cachedFramingTransposer.m_TrackedObjectOffset = target;
+        }
+
+        private void RestoreInitialDollyOffsetRuntime()
+        {
+            if (!dollyBodyOffsetInitialized)
+                return;
+
+            if (cachedBodyTransposer == null && cachedFramingTransposer == null)
+                CacheBodyDriverComponents();
+
+            if (cachedBodyTransposer != null)
+                cachedBodyTransposer.m_FollowOffset = dollyBodyOffsetInitialValue;
+            else if (cachedFramingTransposer != null)
+                cachedFramingTransposer.m_TrackedObjectOffset = dollyBodyOffsetInitialValue;
         }
 
 #if UNITY_EDITOR
@@ -565,13 +1108,7 @@ namespace toshi.VLiveKit.Photography
         [ContextMenu("Restore Initial Dolly Offset")]
         private void RestoreInitialDollyOffset()
         {
-            if (!dollyBodyOffsetInitialized)
-                return;
-
-            if (cachedBodyTransposer != null)
-                cachedBodyTransposer.m_FollowOffset = dollyBodyOffsetInitialValue;
-            else if (cachedFramingTransposer != null)
-                cachedFramingTransposer.m_TrackedObjectOffset = dollyBodyOffsetInitialValue;
+            RestoreInitialDollyOffsetRuntime();
         }
 #endif
     }

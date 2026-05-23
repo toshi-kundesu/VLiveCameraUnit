@@ -77,10 +77,6 @@ namespace toshi.VLiveKit.Photography
         private float focalVelocity;
         private float sensorHeightMm;
 
-#if UNITY_EDITOR
-        private static bool s_RightMousePressedForSceneView;
-#endif
-
         // ─────────────────────────────────────
         // ライフサイクル
         // ─────────────────────────────────────
@@ -96,7 +92,6 @@ namespace toshi.VLiveKit.Photography
 
 #if UNITY_EDITOR
             EditorApplication.update += EditorUpdateView;
-            SceneView.duringSceneGui += OnSceneGUI;
 #endif
         }
 
@@ -104,8 +99,6 @@ namespace toshi.VLiveKit.Photography
         {
 #if UNITY_EDITOR
             EditorApplication.update -= EditorUpdateView;
-            SceneView.duringSceneGui -= OnSceneGUI;
-            s_RightMousePressedForSceneView = false;
 #endif
             if (isRightMouseLooking)
             {
@@ -293,16 +286,6 @@ namespace toshi.VLiveKit.Photography
             sceneView.Repaint();
         }
 
-        private void OnSceneGUI(SceneView sceneView)
-        {
-            if (currentMode != Mode.SceneViewSync) return;
-
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && e.button == 1)
-                s_RightMousePressedForSceneView = true;
-            else if (e.type == EventType.MouseUp && e.button == 1)
-                s_RightMousePressedForSceneView = false;
-        }
 #endif
 
         // ─────────────────────────────────────

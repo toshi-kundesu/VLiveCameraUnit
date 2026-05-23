@@ -133,7 +133,9 @@ namespace toshi.VLiveKit
 
         private static VLiveTimeTable FindEnabledSceneInstance()
         {
-            VLiveTimeTable[] instances = FindObjectsOfType<VLiveTimeTable>(true);
+            VLiveTimeTable[] instances = FindObjectsByType<VLiveTimeTable>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
             for (int i = 0; i < instances.Length; i++)
             {
                 if (instances[i] != null && instances[i].enabled)

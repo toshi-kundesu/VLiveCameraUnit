@@ -11,6 +11,7 @@ using UnityEngine.UI;
 /// Live-program camera switcher for VLiveCamera test scenes.
 /// It maps operator inputs to camera shots, drives optional auto-cut timing, and updates monitor UI.
 /// </summary>
+[DefaultExecutionOrder(50)]
 public class VLiveCameraSwitcher : MonoBehaviour
 {
     public enum LiveCameraInputMode
@@ -116,6 +117,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
     private int crossFadeRenderTextureWidth;
     private int crossFadeRenderTextureHeight;
     private Coroutine liveTransitionCoroutine;
+    private int crossFadeLiveShotIndex = -1;
 
     private struct LiveSensorPreset
     {
@@ -193,14 +195,45 @@ public class VLiveCameraSwitcher : MonoBehaviour
             }
         }
 
+    }
+
+    private void LateUpdate()
+    {
+        RefreshCurrentLiveCameraOutput();
+        RefreshCrossFadeCameraOutput();
+    }
+
+    private void RefreshCurrentLiveCameraOutput()
+    {
+        if (liveCameraShots == null || liveCameraShots.Count == 0)
+            return;
+
+        if (liveCameraOutputMode == LiveCameraOutputMode.ProgramOutputCamera && programOutputCamera == null)
+            return;
+
         LiveCameraShot onAirShot = GetCurrentLiveShot();
         Camera onAirCamera = onAirShot != null ? onAirShot.liveCamera : null;
-        if (onAirCamera != null)
-        {
-            ApplyLiveCameraToProgramOutput(onAirShot);
-            UpdateProgramInfoText(onAirShot);
-            UpdateLiveCameraStatusTexts(onAirCamera);
-        }
+        if (onAirCamera == null)
+            return;
+
+        ApplyLiveCameraToProgramOutput(onAirShot);
+        UpdateProgramInfoText(onAirShot);
+        UpdateLiveCameraStatusTexts(onAirCamera);
+    }
+
+    private void RefreshCrossFadeCameraOutput()
+    {
+        if (crossFadeLiveShotIndex < 0 || crossFadeCamera == null || crossFadeRenderTexture == null)
+            return;
+
+        LiveCameraShot nextShot = GetLiveShot(crossFadeLiveShotIndex);
+        if (nextShot == null || nextShot.liveCamera == null)
+            return;
+
+        CopyLiveCameraToOutputCamera(nextShot, crossFadeCamera);
+        crossFadeCamera.rect = new Rect(0f, 0f, 1f, 1f);
+        crossFadeCamera.targetTexture = crossFadeRenderTexture;
+        crossFadeCamera.enabled = true;
     }
 
     private bool HandleLiveCameraInput()
@@ -472,6 +505,7 @@ public class VLiveCameraSwitcher : MonoBehaviour
         Camera sourceCamera = nextShot != null ? nextShot.liveCamera : null;
         if (sourceCamera == null || crossFadeCamera == null)
         {
+            crossFadeLiveShotIndex = -1;
             liveTransitionCoroutine = null;
             yield break;
         }
@@ -479,18 +513,17 @@ public class VLiveCameraSwitcher : MonoBehaviour
         InitializeCrossFadeImage();
         if (crossFadeRenderTexture == null)
         {
+            crossFadeLiveShotIndex = -1;
             CutToLiveCameraIndexInternal(index);
             liveTransitionCoroutine = null;
             yield break;
         }
 
+        crossFadeLiveShotIndex = index;
         bool wasEnabled = crossFadeCamera.enabled;
         Rect previousRect = crossFadeCamera.rect;
         RenderTexture previousTargetTexture = crossFadeCamera.targetTexture;
-        CopyLiveCameraToOutputCamera(nextShot, crossFadeCamera);
-        crossFadeCamera.rect = new Rect(0f, 0f, 1f, 1f);
-        crossFadeCamera.targetTexture = crossFadeRenderTexture;
-        crossFadeCamera.enabled = true;
+        RefreshCrossFadeCameraOutput();
 
         crossFadeImage.texture = crossFadeRenderTexture;
         crossFadeImage.color = new Color(1f, 1f, 1f, 0f);
@@ -499,16 +532,12 @@ public class VLiveCameraSwitcher : MonoBehaviour
         float startTime = Time.time;
         while (Time.time - startTime < crossFadeDuration)
         {
-            CopyLiveCameraToOutputCamera(nextShot, crossFadeCamera);
-            crossFadeCamera.rect = new Rect(0f, 0f, 1f, 1f);
-            crossFadeCamera.targetTexture = crossFadeRenderTexture;
-            crossFadeCamera.enabled = true;
-
             float alpha = Mathf.Clamp01((Time.time - startTime) / crossFadeDuration);
             crossFadeImage.color = new Color(1f, 1f, 1f, alpha);
             yield return null;
         }
 
+        crossFadeLiveShotIndex = -1;
         crossFadeCamera.targetTexture = previousTargetTexture;
         crossFadeCamera.rect = previousRect;
         crossFadeCamera.enabled = wasEnabled;

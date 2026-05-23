@@ -213,7 +213,9 @@ public class VLiveLookTargetRig : MonoBehaviour
 
     private static VLiveLookTargetRig FindEnabledSceneInstance()
     {
-        VLiveLookTargetRig[] instances = FindObjectsOfType<VLiveLookTargetRig>(true);
+        VLiveLookTargetRig[] instances = FindObjectsByType<VLiveLookTargetRig>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
         for (int i = 0; i < instances.Length; i++)
         {
             if (instances[i] != null && instances[i].enabled)
@@ -237,7 +239,7 @@ public class VLiveLookTargetRig : MonoBehaviour
 
             if (vLivePerformer == null)
             {
-                vLivePerformer = FindObjectOfType<VLivePerformer>();
+                vLivePerformer = FindAnyObjectByType<VLivePerformer>();
             }
         }
 

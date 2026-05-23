@@ -29,15 +29,55 @@ namespace toshi.VLiveKit.Photography.Editor
         private SerializedProperty followTargetTransform;
         private SerializedProperty followTargetMarker;
 
+        private SerializedProperty enableScreenPositionModule;
+        private SerializedProperty screenPositionDirector;
+        private SerializedProperty useDirectorTimeForScreenPosition;
+        private SerializedProperty useScreenPositionSinWobble;
+        private SerializedProperty useScreenPositionPerlinWobble;
+        private SerializedProperty screenPositionMotionMode;
+        private SerializedProperty screenPositionTimeOffset;
+        private SerializedProperty screenPositionTimeScalePrimary;
+        private SerializedProperty screenPositionTimeScaleSecondary;
+        private SerializedProperty screenPositionIntensityScalePrimary;
+        private SerializedProperty screenPositionIntensityScaleSecondary;
+        private SerializedProperty screenPositionBase;
+        private SerializedProperty screenPositionAmplitude;
+        private SerializedProperty screenPositionFrequency;
+        private SerializedProperty screenPositionPhaseDeg;
+        private SerializedProperty screenPositionPerlinOffset;
+        private SerializedProperty previewScreenPositionInEditMode;
+        private SerializedProperty screenPositionEvaluatedTimeDebug;
+        private SerializedProperty screenPositionOutputDebug;
+
+        private SerializedProperty enableDutchRollModule;
+        private SerializedProperty dutchRollDirector;
+        private SerializedProperty useDirectorTimeForDutchRoll;
+        private SerializedProperty dutchRollMotionMode;
+        private SerializedProperty dutchRollTimeOffset;
+        private SerializedProperty dutchRollTimeScalePrimary;
+        private SerializedProperty dutchRollTimeScaleSecondary;
+        private SerializedProperty dutchRollIntensityScalePrimary;
+        private SerializedProperty dutchRollIntensityScaleSecondary;
+        private SerializedProperty dutchRollBaseDegrees;
+        private SerializedProperty dutchRollAmplitudeDegrees;
+        private SerializedProperty dutchRollFrequency;
+        private SerializedProperty dutchRollPhaseDeg;
+        private SerializedProperty dutchRollPerlinOffset;
+        private SerializedProperty previewDutchRollInEditMode;
+        private SerializedProperty dutchRollEvaluatedTimeDebug;
+        private SerializedProperty dutchRollOutputDegreesDebug;
+
         private SerializedProperty enableBreathingZoomModule;
         private SerializedProperty breathingZoomDirector;
         private SerializedProperty useDirectorTimeForBreathingZoom;
         private SerializedProperty breathingZoomTimeOffset;
+        private SerializedProperty breathingZoomMotionMode;
         private SerializedProperty breathingZoomTimeScalePrimary;
         private SerializedProperty breathingZoomTimeScaleSecondary;
         private SerializedProperty breathingZoomFovMin;
         private SerializedProperty breathingZoomFovMax;
         private SerializedProperty breathingZoomFrequencyHz;
+        private SerializedProperty breathingZoomPerlinOffset;
         private SerializedProperty breathingZoomEvaluatedTimeDebug;
 
         private SerializedProperty enableRigDriftModule;
@@ -47,10 +87,12 @@ namespace toshi.VLiveKit.Photography.Editor
         private SerializedProperty rigDriftDirector;
         private SerializedProperty rigDriftTimeScalePrimary;
         private SerializedProperty rigDriftTimeScaleSecondary;
+        private SerializedProperty rigDriftMotionMode;
         private SerializedProperty driftAxisWeight;
         private SerializedProperty driftFrequency;
         private SerializedProperty driftAmplitude;
         private SerializedProperty driftPhaseOffset;
+        private SerializedProperty driftPerlinOffset;
         private SerializedProperty driftRangeMin;
         private SerializedProperty driftRangeMax;
         private SerializedProperty rigDriftOffset;
@@ -89,6 +131,8 @@ namespace toshi.VLiveKit.Photography.Editor
         private SerializedProperty dollyBodyOffsetAmplitude;
         private SerializedProperty dollyBodyOffsetFrequency;
         private SerializedProperty dollyBodyOffsetPhaseDeg;
+        private SerializedProperty dollyBodyOffsetMotionMode;
+        private SerializedProperty dollyBodyOffsetPerlinOffset;
         private SerializedProperty previewDollyOffsetInEditMode;
 
         private void CacheSerializedProperties()
@@ -117,15 +161,55 @@ namespace toshi.VLiveKit.Photography.Editor
             followTargetTransform = serializedObject.FindProperty("followTargetTransform");
             followTargetMarker = serializedObject.FindProperty("followTargetMarker");
 
+            enableScreenPositionModule = serializedObject.FindProperty("enableScreenPositionModule");
+            screenPositionDirector = serializedObject.FindProperty("screenPositionDirector");
+            useDirectorTimeForScreenPosition = serializedObject.FindProperty("useDirectorTimeForScreenPosition");
+            useScreenPositionSinWobble = serializedObject.FindProperty("useScreenPositionSinWobble");
+            useScreenPositionPerlinWobble = serializedObject.FindProperty("useScreenPositionPerlinWobble");
+            screenPositionMotionMode = serializedObject.FindProperty("screenPositionMotionMode");
+            screenPositionTimeOffset = serializedObject.FindProperty("screenPositionTimeOffset");
+            screenPositionTimeScalePrimary = serializedObject.FindProperty("screenPositionTimeScalePrimary");
+            screenPositionTimeScaleSecondary = serializedObject.FindProperty("screenPositionTimeScaleSecondary");
+            screenPositionIntensityScalePrimary = serializedObject.FindProperty("screenPositionIntensityScalePrimary");
+            screenPositionIntensityScaleSecondary = serializedObject.FindProperty("screenPositionIntensityScaleSecondary");
+            screenPositionBase = serializedObject.FindProperty("screenPositionBase");
+            screenPositionAmplitude = serializedObject.FindProperty("screenPositionAmplitude");
+            screenPositionFrequency = serializedObject.FindProperty("screenPositionFrequency");
+            screenPositionPhaseDeg = serializedObject.FindProperty("screenPositionPhaseDeg");
+            screenPositionPerlinOffset = serializedObject.FindProperty("screenPositionPerlinOffset");
+            previewScreenPositionInEditMode = serializedObject.FindProperty("previewScreenPositionInEditMode");
+            screenPositionEvaluatedTimeDebug = serializedObject.FindProperty("screenPositionEvaluatedTimeDebug");
+            screenPositionOutputDebug = serializedObject.FindProperty("screenPositionOutputDebug");
+
+            enableDutchRollModule = serializedObject.FindProperty("enableDutchRollModule");
+            dutchRollDirector = serializedObject.FindProperty("dutchRollDirector");
+            useDirectorTimeForDutchRoll = serializedObject.FindProperty("useDirectorTimeForDutchRoll");
+            dutchRollMotionMode = serializedObject.FindProperty("dutchRollMotionMode");
+            dutchRollTimeOffset = serializedObject.FindProperty("dutchRollTimeOffset");
+            dutchRollTimeScalePrimary = serializedObject.FindProperty("dutchRollTimeScalePrimary");
+            dutchRollTimeScaleSecondary = serializedObject.FindProperty("dutchRollTimeScaleSecondary");
+            dutchRollIntensityScalePrimary = serializedObject.FindProperty("dutchRollIntensityScalePrimary");
+            dutchRollIntensityScaleSecondary = serializedObject.FindProperty("dutchRollIntensityScaleSecondary");
+            dutchRollBaseDegrees = serializedObject.FindProperty("dutchRollBaseDegrees");
+            dutchRollAmplitudeDegrees = serializedObject.FindProperty("dutchRollAmplitudeDegrees");
+            dutchRollFrequency = serializedObject.FindProperty("dutchRollFrequency");
+            dutchRollPhaseDeg = serializedObject.FindProperty("dutchRollPhaseDeg");
+            dutchRollPerlinOffset = serializedObject.FindProperty("dutchRollPerlinOffset");
+            previewDutchRollInEditMode = serializedObject.FindProperty("previewDutchRollInEditMode");
+            dutchRollEvaluatedTimeDebug = serializedObject.FindProperty("dutchRollEvaluatedTimeDebug");
+            dutchRollOutputDegreesDebug = serializedObject.FindProperty("dutchRollOutputDegreesDebug");
+
             enableBreathingZoomModule = serializedObject.FindProperty("enableBreathingZoomModule");
             breathingZoomDirector = serializedObject.FindProperty("breathingZoomDirector");
             useDirectorTimeForBreathingZoom = serializedObject.FindProperty("useDirectorTimeForBreathingZoom");
             breathingZoomTimeOffset = serializedObject.FindProperty("breathingZoomTimeOffset");
+            breathingZoomMotionMode = serializedObject.FindProperty("breathingZoomMotionMode");
             breathingZoomTimeScalePrimary = serializedObject.FindProperty("breathingZoomTimeScalePrimary");
             breathingZoomTimeScaleSecondary = serializedObject.FindProperty("breathingZoomTimeScaleSecondary");
             breathingZoomFovMin = serializedObject.FindProperty("breathingZoomFovMin");
             breathingZoomFovMax = serializedObject.FindProperty("breathingZoomFovMax");
             breathingZoomFrequencyHz = serializedObject.FindProperty("breathingZoomFrequencyHz");
+            breathingZoomPerlinOffset = serializedObject.FindProperty("breathingZoomPerlinOffset");
             breathingZoomEvaluatedTimeDebug = serializedObject.FindProperty("breathingZoomEvaluatedTimeDebug");
 
             enableRigDriftModule = serializedObject.FindProperty("enableRigDriftModule");
@@ -135,10 +219,12 @@ namespace toshi.VLiveKit.Photography.Editor
             rigDriftDirector = serializedObject.FindProperty("rigDriftDirector");
             rigDriftTimeScalePrimary = serializedObject.FindProperty("rigDriftTimeScalePrimary");
             rigDriftTimeScaleSecondary = serializedObject.FindProperty("rigDriftTimeScaleSecondary");
+            rigDriftMotionMode = serializedObject.FindProperty("rigDriftMotionMode");
             driftAxisWeight = serializedObject.FindProperty("driftAxisWeight");
             driftFrequency = serializedObject.FindProperty("driftFrequency");
             driftAmplitude = serializedObject.FindProperty("driftAmplitude");
             driftPhaseOffset = serializedObject.FindProperty("driftPhaseOffset");
+            driftPerlinOffset = serializedObject.FindProperty("driftPerlinOffset");
             driftRangeMin = serializedObject.FindProperty("driftRangeMin");
             driftRangeMax = serializedObject.FindProperty("driftRangeMax");
             rigDriftOffset = serializedObject.FindProperty("rigDriftOffset");
@@ -177,6 +263,8 @@ namespace toshi.VLiveKit.Photography.Editor
             dollyBodyOffsetAmplitude = serializedObject.FindProperty("dollyBodyOffsetAmplitude");
             dollyBodyOffsetFrequency = serializedObject.FindProperty("dollyBodyOffsetFrequency");
             dollyBodyOffsetPhaseDeg = serializedObject.FindProperty("dollyBodyOffsetPhaseDeg");
+            dollyBodyOffsetMotionMode = serializedObject.FindProperty("dollyBodyOffsetMotionMode");
+            dollyBodyOffsetPerlinOffset = serializedObject.FindProperty("dollyBodyOffsetPerlinOffset");
             previewDollyOffsetInEditMode = serializedObject.FindProperty("previewDollyOffsetInEditMode");
         }
     }

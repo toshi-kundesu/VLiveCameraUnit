@@ -8,11 +8,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using toshi.VLiveKit.Photography;
+using Random = UnityEngine.Random;
 
 namespace toshi.VLiveKit.Photography
 {
 public class VLiveCameraMan : MonoBehaviour
 {
+    private const float Tau = Mathf.PI * 2f;
+
     public enum OperationState
     {
         Running,
@@ -34,8 +37,11 @@ public class VLiveCameraMan : MonoBehaviour
         public bool syncTimeline;
         public bool useRandomMotion;
         public bool useRotation;
+        public bool useScreenPositionSinWobble;
+        public bool useScreenPositionPerlinWobble;
         public float fieldOfView;
         public float focusDistance;
+        public Vector2 screenPosition;
         public Vector3 position;
         public string targetName;
 
@@ -145,6 +151,8 @@ public class VLiveCameraMan : MonoBehaviour
     private float zoomTime;
     // time for perlin noise
     private float perlinPosTime;
+    // time for screen position wobble
+    private float screenPositionTime;
 
     private Vector3 cameraWorldPos;
     [SerializeField]
@@ -176,6 +184,22 @@ public class VLiveCameraMan : MonoBehaviour
     [SerializeField]
     private PlayableDirector timelineDirector;
 
+    [Header("Screen Position Wobble")]
+    public bool useScreenPositionSinWobble = false;
+    public bool useScreenPositionPerlinWobble = false;
+    [Min(0f)]
+    public float screenPositionTimeScale = 1.0f;
+    public float screenPositionTimeOffset = 0.0f;
+    public Vector2 screenPositionBase = new Vector2(0.5f, 0.5f);
+    public Vector2 screenPositionSinAmplitude = new Vector2(0.05f, 0.05f);
+    public Vector2 screenPositionSinFrequency = new Vector2(0.25f, 0.35f);
+    public Vector2 screenPositionSinPhaseDeg = new Vector2(0.0f, 90.0f);
+    public Vector2 screenPositionPerlinAmplitude = new Vector2(0.05f, 0.05f);
+    public Vector2 screenPositionPerlinFrequency = new Vector2(0.25f, 0.35f);
+    public Vector2 screenPositionPerlinOffset = new Vector2(0.0f, 17.0f);
+    [SerializeField]
+    private Vector2 screenPositionOutputDebug = new Vector2(0.5f, 0.5f);
+
     private Vector3 initialPosition;
     private Quaternion initialRotation;
     private float randomOffsetX;
@@ -205,12 +229,14 @@ public class VLiveCameraMan : MonoBehaviour
         // set random time offset or not
         if (useRandomTimeOffset)
         {
+            screenPositionTime = Random.Range(0f, 100f);
             time = Random.Range(0f, 100f); // ランダムな初期時間
             zoomTime = Random.Range(0f, 100f); // ランダムな初期時間
             perlinPosTime = Random.Range(0f, 100f); // ランダムな初期時間
         }
         else
         {
+            screenPositionTime = 0f;
             time = 0f;
             zoomTime = 0f;
             perlinPosTime = 0f;
@@ -264,6 +290,7 @@ public class VLiveCameraMan : MonoBehaviour
             time = (float)timelineDirector.time * frequency;
             zoomTime = (float)timelineDirector.time * zoomSpeed;
             perlinPosTime = (float)timelineDirector.time * frequency;
+            screenPositionTime = (float)timelineDirector.time;
         }
         else
         {
@@ -273,6 +300,7 @@ public class VLiveCameraMan : MonoBehaviour
                 time += Time.deltaTime * frequency;
                 zoomTime += Time.deltaTime * zoomSpeed;
                 perlinPosTime += Time.deltaTime * frequency;
+                screenPositionTime += Time.deltaTime;
             }
         }
         float offsetX = useRandomMotion ? randomOffsetX : 0.0f;
@@ -297,21 +325,36 @@ public class VLiveCameraMan : MonoBehaviour
         cameraWorldPos = transform.position;
         if (target)
         {
+            Camera targetCamera = ResolveCamera();
+            if (targetCamera != null)
+            {
+                float noise = Mathf.PerlinNoise(zoomTime, 0f);
+                float curveValue = fovCurve.Evaluate(noise);
+                targetCamera.fieldOfView = Mathf.Lerp(minFov, maxFov, curveValue);
+            }
+
             Vector3 targetPositionWithOffset = target.position + offset;
-            Quaternion targetRotation = Quaternion.LookRotation(targetPositionWithOffset - transform.position);
+            Vector3 targetDirection = targetPositionWithOffset - transform.position;
+            if (targetDirection.sqrMagnitude < Mathf.Epsilon)
+            {
+                return;
+            }
+
+            Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+            if (IsScreenPositionWobbleEnabled() && targetCamera != null)
+            {
+                Vector2 screenPosition = EvaluateScreenPositionWobble();
+                targetRotation = ApplyScreenPositionToLookRotation(targetRotation, screenPosition, targetCamera);
+            }
+
             float xRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.x, targetRotation.eulerAngles.x, Time.deltaTime * xDamping);
             float yRotation = Mathf.LerpAngle(transform.rotation.eulerAngles.y, targetRotation.eulerAngles.y, Time.deltaTime * yDamping);
             transform.rotation = Quaternion.Euler(xRotation, yRotation, targetRotation.eulerAngles.z);
 
-            // time += Time.deltaTime * zoomSpeed;
-            float noise = Mathf.PerlinNoise(zoomTime, 0f);
-            float curveValue = fovCurve.Evaluate(noise);
-            cam.fieldOfView = Mathf.Lerp(minFov, maxFov, curveValue);
-
-            if (autoFocus)
+            if (autoFocus && targetCamera != null)
             {
                 focusDistance = Vector3.Distance(transform.position, target.position);
-                cam.focusDistance = focusDistance;
+                targetCamera.focusDistance = focusDistance;
             }
         }
 
@@ -323,6 +366,66 @@ public class VLiveCameraMan : MonoBehaviour
     float Remap(float value, float from1, float to1, float from2, float to2)
     {
         return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    }
+
+    private bool IsScreenPositionWobbleEnabled()
+    {
+        return useScreenPositionSinWobble || useScreenPositionPerlinWobble;
+    }
+
+    private Vector2 EvaluateScreenPositionWobble()
+    {
+        float evaluatedTime = (screenPositionTime + screenPositionTimeOffset) * Mathf.Max(0f, screenPositionTimeScale);
+        Vector2 output = screenPositionBase;
+
+        if (useScreenPositionSinWobble)
+        {
+            Vector2 signal = new Vector2(
+                Mathf.Sin(evaluatedTime * Mathf.Max(0f, screenPositionSinFrequency.x) * Tau + screenPositionSinPhaseDeg.x * Mathf.Deg2Rad),
+                Mathf.Sin(evaluatedTime * Mathf.Max(0f, screenPositionSinFrequency.y) * Tau + screenPositionSinPhaseDeg.y * Mathf.Deg2Rad));
+
+            output += Vector2.Scale(screenPositionSinAmplitude, signal);
+        }
+
+        if (useScreenPositionPerlinWobble)
+        {
+            float randomX = useRandomMotion ? randomOffsetX : 0.0f;
+            float randomY = useRandomMotion ? randomOffsetY : 0.0f;
+            Vector2 signal = new Vector2(
+                Mathf.PerlinNoise(evaluatedTime * Mathf.Max(0f, screenPositionPerlinFrequency.x) + screenPositionPerlinOffset.x + randomX, 0.0f) * 2.0f - 1.0f,
+                Mathf.PerlinNoise(evaluatedTime * Mathf.Max(0f, screenPositionPerlinFrequency.y) + screenPositionPerlinOffset.y + randomY, 17.0f) * 2.0f - 1.0f);
+
+            output += Vector2.Scale(screenPositionPerlinAmplitude, signal);
+        }
+
+        output.x = Mathf.Clamp01(output.x);
+        output.y = Mathf.Clamp01(output.y);
+        screenPositionOutputDebug = output;
+        return output;
+    }
+
+    private Quaternion ApplyScreenPositionToLookRotation(Quaternion lookRotation, Vector2 screenPosition, Camera targetCamera)
+    {
+        float verticalHalfFov = Mathf.Clamp(targetCamera.fieldOfView, 0.1f, 179.0f) * 0.5f * Mathf.Deg2Rad;
+        float horizontalHalfFov = Mathf.Atan(Mathf.Tan(verticalHalfFov) * Mathf.Max(0.0001f, targetCamera.aspect));
+        float normalizedX = (Mathf.Clamp01(screenPosition.x) - 0.5f) * 2.0f;
+        float normalizedY = (Mathf.Clamp01(screenPosition.y) - 0.5f) * 2.0f;
+
+        float yawOffset = -Mathf.Atan(normalizedX * Mathf.Tan(horizontalHalfFov)) * Mathf.Rad2Deg;
+        float pitchOffset = Mathf.Atan(normalizedY * Mathf.Tan(verticalHalfFov)) * Mathf.Rad2Deg;
+
+        return lookRotation * Quaternion.Euler(pitchOffset, yawOffset, 0.0f);
+    }
+
+    private void OnValidate()
+    {
+        screenPositionTimeScale = Mathf.Max(0.0f, screenPositionTimeScale);
+        screenPositionBase.x = Mathf.Clamp01(screenPositionBase.x);
+        screenPositionBase.y = Mathf.Clamp01(screenPositionBase.y);
+        screenPositionSinFrequency.x = Mathf.Max(0.0f, screenPositionSinFrequency.x);
+        screenPositionSinFrequency.y = Mathf.Max(0.0f, screenPositionSinFrequency.y);
+        screenPositionPerlinFrequency.x = Mathf.Max(0.0f, screenPositionPerlinFrequency.x);
+        screenPositionPerlinFrequency.y = Mathf.Max(0.0f, screenPositionPerlinFrequency.y);
     }
 
     [ContextMenu("Log VLiveCameraMan Count")]
@@ -367,8 +470,11 @@ public class VLiveCameraMan : MonoBehaviour
             syncTimeline = syncTimeline,
             useRandomMotion = useRandomMotion,
             useRotation = useRotation,
+            useScreenPositionSinWobble = useScreenPositionSinWobble,
+            useScreenPositionPerlinWobble = useScreenPositionPerlinWobble,
             fieldOfView = hasCamera ? statusCamera.fieldOfView : 0f,
             focusDistance = focusDistance,
+            screenPosition = screenPositionOutputDebug,
             position = transform.position,
             targetName = hasTarget ? target.name : string.Empty
         };

@@ -47,7 +47,7 @@ public class VLiveLookTargetRigEditor : Editor
 
         var rig = (VLiveLookTargetRig)target;
 
-        DrawHeader();
+        DrawRigHeader();
         EditorGUILayout.Space(6);
 
         DrawPerformerSection();
@@ -64,7 +64,7 @@ public class VLiveLookTargetRigEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    private void DrawHeader()
+    private void DrawRigHeader()
     {
         var rect = GUILayoutUtility.GetRect(0, 68, GUILayout.ExpandWidth(true));
         EditorGUI.DrawRect(rect, new Color(0.07f, 0.07f, 0.10f));

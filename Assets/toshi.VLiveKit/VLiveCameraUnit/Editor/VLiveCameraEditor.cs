@@ -13,6 +13,8 @@ namespace toshi.VLiveKit.Photography.Editor
         private bool showStageCamera = true;
         private bool showLookTarget = true;
         private bool showFollowTarget = true;
+        private bool showScreenPosition = false;
+        private bool showDutchRoll = false;
         private bool showBreathingZoom = false;
         private bool showRigDrift = false;
         private bool showAccentZoom = false;
@@ -29,7 +31,7 @@ namespace toshi.VLiveKit.Photography.Editor
             serializedObject.Update();
             EnsureStyles();
 
-            DrawHeader();
+            DrawCameraHeader();
 
             showPreset = EditorGUILayout.Foldout(showPreset, "Preset", true, foldoutStyle);
             if (showPreset) DrawPresetSection();
@@ -45,6 +47,12 @@ namespace toshi.VLiveKit.Photography.Editor
 
             showFollowTarget = DrawModuleHeader(showFollowTarget, "Follow Target", enableFollowTargetModule);
             if (showFollowTarget) DrawFollowTargetSectionBody();
+
+            showScreenPosition = DrawModuleHeader(showScreenPosition, "Screen Position", enableScreenPositionModule);
+            if (showScreenPosition) DrawScreenPositionSectionBody();
+
+            showDutchRoll = DrawModuleHeader(showDutchRoll, "Dutch Roll", enableDutchRollModule);
+            if (showDutchRoll) DrawDutchRollSectionBody();
 
             showBreathingZoom = DrawModuleHeader(showBreathingZoom, "Breathing Zoom", enableBreathingZoomModule);
             if (showBreathingZoom) DrawBreathingZoomSectionBody();
@@ -64,7 +72,7 @@ namespace toshi.VLiveKit.Photography.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawHeader()
+        private void DrawCameraHeader()
         {
             Rect rect = EditorGUILayout.GetControlRect(false, 46f);
             EditorGUI.DrawRect(rect, HeaderBg);

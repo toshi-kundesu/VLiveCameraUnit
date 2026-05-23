@@ -5,7 +5,7 @@
 ## Package
 
 - Package name: `com.toshi.vlivekit.cameraunit`
-- Version: `0.0.6`
+- Version: `0.1.8`
 - Unity: 2022.3
 - Repository: https://github.com/toshi-kundesu/VLiveKit_camera
 - Package root: `Assets/toshi.VLiveKit/VLiveCameraUnit`
