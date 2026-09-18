@@ -6,7 +6,9 @@ using toshi.VLiveKit;
 
 namespace toshi.VLiveKit.Photography
 {
-    [DefaultExecutionOrder(120)]
+    // Evaluate Timeline/Animator-driven camera inputs after animation, but before
+    // CinemachineBrain's LateUpdate (execution order 100 in Cinemachine 2.x).
+    [DefaultExecutionOrder(80)]
     public partial class VLiveCamera : MonoBehaviour
     {
         public enum CameraRigSpace
@@ -446,7 +448,7 @@ namespace toshi.VLiveKit.Photography
             SyncRuntimeModuleStateSnapshot();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             HandleRuntimeModuleSwitches();
 

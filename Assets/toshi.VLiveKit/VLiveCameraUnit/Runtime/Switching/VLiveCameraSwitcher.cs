@@ -11,7 +11,8 @@ using UnityEngine.UI;
 /// Live-program camera switcher for VLiveCamera test scenes.
 /// It maps operator inputs to camera shots, drives optional auto-cut timing, and updates monitor UI.
 /// </summary>
-[DefaultExecutionOrder(50)]
+// Copy the current rendered pose after CinemachineBrain's LateUpdate (100).
+[DefaultExecutionOrder(200)]
 public class VLiveCameraSwitcher : MonoBehaviour
 {
     public enum LiveCameraInputMode

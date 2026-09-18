@@ -6,7 +6,8 @@ using toshi.VLiveKit;
 
 namespace toshi.VLiveKit.Photography
 {
-    [DefaultExecutionOrder(115)]
+    // Bind the built look-target rig (70) before VLiveCamera initializes (80).
+    [DefaultExecutionOrder(75)]
     [DisallowMultipleComponent]
     [AddComponentMenu("toshi/VLiveKit/Photography/VLive Camera Preset Spawner")]
     public class VLiveCameraPresetSpawner : MonoBehaviour

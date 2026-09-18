@@ -5,7 +5,8 @@ using UnityEngine.Scripting.APIUpdating;
 using System;
 using System.Collections.Generic;
 
-[DefaultExecutionOrder(110)]
+// Build targets before the preset spawner (75) and camera modules (80) start.
+[DefaultExecutionOrder(70)]
 [DisallowMultipleComponent]
 [MovedFrom(false, sourceNamespace: null, sourceAssembly: null, sourceClassName: "BoneCollector")]
 public class VLiveLookTargetRig : MonoBehaviour
