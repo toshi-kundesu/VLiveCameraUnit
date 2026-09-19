@@ -34,6 +34,15 @@ Unity の `Packages/manifest.json` の `dependencies` に追加します。
 
 VLiveKit sandbox では submodule として `Packages/VLiveKit_camera` に配置し、`file:` 参照で読み込んでいます。
 
+## カメラサンプルの動画再生
+
+`Samples/Scenes/VLK_CAMERAUNIT.unity` は、Unity 6000.4.6f1 で発生する
+映像停止・音声の乱れを回避するため、Video Player の `Skip On Drop` を無効にしています。
+[Unity Issue Tracker](https://issuetracker.unity.com/issues/8978/video-player-glitches-when-skip-on-drop-is-enabled)
+
+30fps の同梱動画が 24fps 制限で遅延しないよう、このサンプルの `SceneEssentials` だけ
+フレームレートを 60fps に上書きしています。共通 prefab の設定は変更していません。
+
 ## 注意
 
 - ライブ運用で調整しながら使う前提のため、preset や rig の構成はプロジェクト側で上書きできます。

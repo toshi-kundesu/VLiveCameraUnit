@@ -605,7 +605,7 @@ VideoPlayer:
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
   m_PlayOnAwake: 1
-  m_SkipOnDrop: 1
+  m_SkipOnDrop: 0
   m_Looping: 1
   m_WaitForFirstFrame: 1
   m_FrameReadyEventEnabled: 0
@@ -1331,6 +1331,10 @@ PrefabInstance:
     - target: {fileID: 100003, guid: c26b226435494daaaaf984fcf2a6905d, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100003, guid: c26b226435494daaaaf984fcf2a6905d, type: 3}
+      propertyPath: frameRate
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 100003, guid: c26b226435494daaaaf984fcf2a6905d, type: 3}
       propertyPath: isShowSetFrameRate
