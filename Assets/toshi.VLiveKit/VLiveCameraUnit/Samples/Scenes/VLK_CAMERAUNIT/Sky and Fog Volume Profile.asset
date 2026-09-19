@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42d0398562de481d90734e3e2da62be0, type: 3}
   m_Name: DepthFogOverlay
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.08
@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4531454739c41aaa3be40e96595e22a, type: 3}
   m_Name: BleachBypass
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0
@@ -202,7 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f25d46018124474da3809bc341ec0bf9, type: 3}
   m_Name: AnimeSpeedLines
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0
@@ -311,7 +311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0efe6bc0ab6643d3acf65c945d3622b0, type: 3}
   m_Name: StarFilter
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -379,7 +379,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f2dbb53cdcb2e64bbdf1ed43975e41f, type: 3}
   m_Name: diffusion
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   stretch:
     m_OverrideState: 1
     m_Value: 0.273
@@ -484,7 +484,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c62724e378be443493c1421fd8260a3e, type: 3}
   m_Name: PixelSort
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -531,7 +531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb1cd80d25b843e2af76c717d4e2a992, type: 3}
   m_Name: LightWrap
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.413
@@ -620,7 +620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52c0f4f0d7284ac08c1f4677e24c17ec, type: 3}
   m_Name: RGBGlitch
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.069
@@ -645,7 +645,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960ee115c5c84da88f9838559bbf3e10, type: 3}
   m_Name: Halation
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -670,7 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfe69384b26685a4da75d2a33eaa11c0, type: 3}
   m_Name: GenshinBloom
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   stretch:
     m_OverrideState: 1
     m_Value: 0.75
@@ -741,7 +741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1554dce31aa14fcf9d2755d959a7a68a, type: 3}
   m_Name: DreamBlur
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.2
@@ -763,7 +763,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45f29e23613d47879485230b536c4985, type: 3}
   m_Name: CinemaScope
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -797,7 +797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df0d50738b1042ab83730d8b6f05938f, type: 3}
   m_Name: Prism
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -907,7 +907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb85e3f3b6ef4d7cb2258773be764238, type: 3}
   m_Name: ChromaticAberrationPlus
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 0
     m_Value: 0
@@ -988,7 +988,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4998140e3aa94b10a839ac7afc790772, type: 3}
   m_Name: AnamorphicFlare
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 1
@@ -1217,7 +1217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b92e246a54f349d0a7915d8d5c7ea188, type: 3}
   m_Name: ColorQuantize
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0
